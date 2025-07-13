@@ -1,36 +1,12 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { AdminSidebar } from "@/components/sidebar/admin-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AdminLayout({ children }) {
   const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    // Redirect if user is not authenticated or not an admin
-    if (status === "loading") return; // Still loading
-
-    if (!session) {
-      console.log("❌ No session found, redirecting to home");
-      router.push("/");
-      return;
-    }
-
-    if (session.user?.role !== "admin") {
-      console.log(
-        "⚠️ Non-admin user accessing admin area, redirecting to home"
-      );
-      router.push("/");
-      return;
-    }
-
-    console.log("✅ Admin access granted for:", session.user?.email);
-  }, [session, status, router]);
 
   // Show loading state while session is being fetched
   if (status === "loading") {
@@ -41,11 +17,29 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  // Don't render admin content if user is not authenticated or not admin
-  if (!session || session.user?.role !== "admin") {
+  // Show access denied message if user is not authenticated or not admin
+  if (!session) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-lg">Redirecting...</div>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+          <p className="text-gray-600">
+            Please sign in to access the admin area.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (session.user?.role !== "admin") {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Admin Access Required</h2>
+          <p className="text-gray-600">
+            You don't have permission to access this area.
+          </p>
+        </div>
       </div>
     );
   }
