@@ -1,31 +1,14 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { AdminSidebar } from "@/components/sidebar/admin-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AdminLayout({ children }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { status } = useSession();
 
-  useEffect(() => {
-    if (status === "loading") return; // Still loading
-
-    if (!session) {
-      router.push("/signin");
-      return;
-    }
-
-    // Check if user has admin role
-    if (session.user?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-  }, [session, status, router]);
-
+  // Show loading state while session is being fetched
   if (status === "loading") {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -34,14 +17,9 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  if (!session) {
-    return null; // Will redirect
-  }
-
-  // Also check role here to prevent flash of admin content
-  if (session.user?.role !== "admin") {
-    return null; // Will redirect
-  }
+  // Middleware handles all authentication and authorization logic
+  // No need for additional checks here since middleware ensures only
+  // authenticated admin users can reach this layout
 
   return (
     <SidebarProvider
