@@ -27,7 +27,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { HomeIcon, Tv2 } from "lucide-react";
-import next from "next";
 
 export function NavUser({ user }) {
   const { isMobile } = useSidebar();

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Certificate from "@/models/certificate.model";
 
@@ -40,13 +40,13 @@ export async function PATCH(request, { params }) {
     certificate.isValid = false;
     certificate.revokedAt = new Date();
     certificate.revokedBy = session.user.id;
-    
+
     await certificate.save();
 
     return NextResponse.json({
       success: true,
       data: certificate,
-      message: "Certificate revoked successfully"
+      message: "Certificate revoked successfully",
     });
   } catch (error) {
     console.error("Error revoking certificate:", error);
