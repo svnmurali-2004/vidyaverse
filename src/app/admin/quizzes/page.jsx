@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,9 +27,6 @@ import {
 } from "lucide-react";
 
 export default function AdminQuizzesPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,19 +34,11 @@ export default function AdminQuizzesPage() {
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/signin");
-      return;
-    }
-
-    if (session?.user?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-
+    // Middleware handles all authentication/authorization
+    // No need for additional checks here
     fetchQuizzes();
     fetchCourses();
-  }, [session, status, router]);
+  }, []);
 
   const fetchQuizzes = async () => {
     try {

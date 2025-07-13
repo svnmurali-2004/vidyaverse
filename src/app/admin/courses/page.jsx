@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,26 +41,16 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function CoursesPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/signin");
-      return;
-    }
-
-    if (session?.user?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-
+    // Middleware handles all authentication/authorization
+    // No need for additional checks here
     fetchCourses();
-  }, [session, status, router]);
+  }, []);
 
   const fetchCourses = async () => {
     try {

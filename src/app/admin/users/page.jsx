@@ -1,31 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/sidebar/data-table";
 
 export default function UsersPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({ total: 0, recent: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/signin");
-      return;
-    }
-
-    if (session?.user?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-
+    // Middleware handles all authentication/authorization
+    // No need for additional checks here
     fetchUsers();
-  }, [session, status, router]);
+    fetchStats();
+  }, []);
 
   const fetchUsers = async () => {
     try {
