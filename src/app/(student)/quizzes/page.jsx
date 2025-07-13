@@ -73,7 +73,7 @@ export default function QuizzesPage() {
       return { text: 'Not attempted', color: 'text-gray-500', icon: AlertCircle };
     }
     
-    const passed = quiz.lastAttempt.score >= quiz.passingScore;
+    const passed = quiz.lastAttempt.percentage >= quiz.passingScore;
     return {
       text: passed ? 'Passed' : 'Failed',
       color: passed ? 'text-green-600' : 'text-red-600',
@@ -141,7 +141,7 @@ export default function QuizzesPage() {
                   Passed
                 </p>
                 <p className="text-2xl font-bold">
-                  {quizzes.filter(q => q.lastAttempt?.score >= q.passingScore).length}
+                  {quizzes.filter(q => q.lastAttempt?.percentage >= q.passingScore).length}
                 </p>
               </div>
               <Award className="h-8 w-8 text-yellow-500" />
@@ -161,7 +161,7 @@ export default function QuizzesPage() {
                     ? Math.round(
                         quizzes
                           .filter(q => q.lastAttempt)
-                          .reduce((sum, q) => sum + q.lastAttempt.score, 0) /
+                          .reduce((sum, q) => sum + q.lastAttempt.percentage, 0) /
                         quizzes.filter(q => q.lastAttempt).length
                       )
                     : 0}%
@@ -253,9 +253,9 @@ export default function QuizzesPage() {
                           {quiz.attemptCount || 0}/{quiz.attempts} attempts
                         </span>
                         {quiz.lastAttempt && (
-                          <span className={`flex items-center font-medium ${getScoreColor(quiz.lastAttempt.score, quiz.passingScore)}`}>
+                          <span className={`flex items-center font-medium ${getScoreColor(quiz.lastAttempt.percentage, quiz.passingScore)}`}>
                             <Award className="h-4 w-4 mr-1" />
-                            Score: {quiz.lastAttempt.score}%
+                            Score: {Math.round(quiz.lastAttempt.percentage)}%
                           </span>
                         )}
                       </div>

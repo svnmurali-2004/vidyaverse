@@ -51,7 +51,4 @@ const progressSchema = new mongoose.Schema(
 progressSchema.index({ userId: 1, lessonId: 1 }, { unique: true });
 progressSchema.index({ userId: 1, courseId: 1 });
 
-const Progress =
-  mongoose.models.Progress || mongoose.model("Progress", progressSchema);
-
-export default Progress;
+export default mongoose.models.Progress || mongoose.model("Progress", progressSchema);

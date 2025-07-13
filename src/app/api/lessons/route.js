@@ -33,6 +33,9 @@ export async function GET(request) {
       filter.course = courseId;
     }
 
+    // Temporarily show all lessons for debugging
+    // filter.isPublished = true;
+
     const skip = (page - 1) * limit;
 
     const lessons = await Lesson.find(filter)
@@ -41,6 +44,10 @@ export async function GET(request) {
       .skip(skip)
       .limit(limit)
       .lean();
+
+    console.log("Lessons API - Filter:", filter);
+    console.log("Lessons API - Found lessons:", lessons.length);
+    console.log("Lessons API - Lessons:", lessons.map(l => ({ id: l._id, title: l.title, type: l.type, hasQuiz: !!l.quiz })));
 
     const total = await Lesson.countDocuments(filter);
 

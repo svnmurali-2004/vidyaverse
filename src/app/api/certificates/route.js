@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
-import dbConnect from "@/lib/db";
+import connectDB from "@/lib/db";
 import Certificate from "@/models/certificate.model";
 import Enrollment from "@/models/enrollment.model";
 import Course from "@/models/course.model";
@@ -20,7 +20,7 @@ export async function GET(request) {
       );
     }
 
-    await dbConnect();
+    await connectDB();
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId") || session.user.id;
@@ -88,7 +88,7 @@ export async function POST(request) {
       );
     }
 
-    await dbConnect();
+    await connectDB();
 
     const body = await request.json();
     const { courseId, userId } = body;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
-import dbConnect from "@/lib/db";
+import connectDB from "@/lib/db";
 import Course from "@/models/course.model";
 import User from "@/models/user.model";
 import Enrollment from "@/models/enrollment.model";
@@ -9,7 +9,7 @@ import { LessonSchema } from "@/models/lesson.model"; // Assuming you have a les
 // GET /api/courses - Get all courses with filters and pagination
 export async function GET(request) {
   try {
-    await dbConnect();
+    await connectDB();
 
     // Get session to check user enrollment status
     const session = await getServerSession(authOptions);
@@ -204,7 +204,7 @@ export async function POST(request) {
 
     console.log("Session user ID:", session.user.id);
 
-    await dbConnect();
+    await connectDB();
 
     const user = await User.findById(session.user.id);
 

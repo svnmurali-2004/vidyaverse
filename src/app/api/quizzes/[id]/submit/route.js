@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import dbConnect from "@/lib/db";
+import connectDB from "@/lib/db";
 import Quiz from "@/models/quiz.model";
 import QuizAttempt from "@/models/quizAttempt.model";
 
@@ -24,7 +24,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    await dbConnect();
+    await connectDB();
 
     const quiz = await Quiz.findById(id);
     if (!quiz) {

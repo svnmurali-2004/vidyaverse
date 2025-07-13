@@ -70,14 +70,16 @@ export default function Dashboard() {
     try {
       setLoading(true);
       
-      // Fetch user enrollments and progress
-      const [enrollmentsRes, quizzesRes] = await Promise.all([
+      // Fetch user enrollments, quizzes, and certificates
+      const [enrollmentsRes, quizzesRes, certificatesRes] = await Promise.all([
         fetch('/api/enrollments'),
-        fetch('/api/quizzes')
+        fetch('/api/quizzes'),
+        fetch('/api/certificates')
       ]);
 
       let enrollments = [];
       let quizzes = [];
+      let certificates = [];
 
       if (enrollmentsRes.ok) {
         const enrollmentsData = await enrollmentsRes.json();
@@ -91,13 +93,18 @@ export default function Dashboard() {
         setAvailableQuizzes(quizzes.filter(q => q.canAttempt).slice(0, 3));
       }
 
+      if (certificatesRes.ok) {
+        const certificatesData = await certificatesRes.json();
+        certificates = certificatesData.data || [];
+      }
+
       // Calculate user statistics
       const completedCourses = enrollments.filter(e => e.progressPercentage >= 100).length;
       const quizzesTaken = quizzes.filter(q => q.lastAttempt).length;
       const averageScore = quizzesTaken > 0 
         ? Math.round(quizzes
             .filter(q => q.lastAttempt)
-            .reduce((sum, q) => sum + q.lastAttempt.score, 0) / quizzesTaken)
+            .reduce((sum, q) => sum + q.lastAttempt.percentage, 0) / quizzesTaken)
         : 0;
 
       setStats({
@@ -106,7 +113,7 @@ export default function Dashboard() {
         quizzesTaken,
         averageScore,
         totalLearningHours: Math.round(enrollments.reduce((sum, e) => sum + (e.course?.duration || 0), 0)),
-        certificates: completedCourses
+        certificates: certificates.length
       });
 
     } catch (error) {
@@ -134,6 +141,13 @@ export default function Dashboard() {
       color: 'bg-blue-500'
     },
     {
+      title: 'My Certificates',
+      description: 'View and download your course certificates',
+      icon: Award,
+      href: '/certificates',
+      color: 'bg-yellow-500'
+    },
+    {
       title: 'Take Quizzes',
       description: 'Test your knowledge with interactive quizzes',
       icon: HelpCircle,
@@ -146,13 +160,6 @@ export default function Dashboard() {
       icon: User,
       href: '/profile',
       color: 'bg-purple-500'
-    },
-    {
-      title: 'Settings',
-      description: 'Customize your learning experience',
-      icon: Settings,
-      href: '/settings',
-      color: 'bg-orange-500'
     }
   ];
 

@@ -21,6 +21,7 @@ import {
   Settings,
   BookOpen,
   LayoutDashboard,
+  Award,
 } from "lucide-react";
 
 const navigation = [
@@ -121,6 +122,12 @@ export default function Navbar() {
                       <Link href="/my-courses">
                         <BookOpen className="mr-2 h-4 w-4" />
                         My Courses
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/certificates">
+                        <Award className="mr-2 h-4 w-4" />
+                        My Certificates
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

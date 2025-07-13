@@ -16,7 +16,7 @@ const enrollmentSchema = new mongoose.Schema(
       enum: ["active", "completed", "paused", "cancelled"],
       default: "active",
     },
-    enrollmentDate: { type: Date, default: Date.now },
+    enrolledAt: { type: Date, default: Date.now }, // Changed from enrollmentDate to match API usage
     certificateIssued: { type: Boolean, default: false },
     razorpayOrderId: { type: String },
   },
@@ -29,5 +29,4 @@ enrollmentSchema.index({ user: 1 });
 enrollmentSchema.index({ course: 1 });
 enrollmentSchema.index({ status: 1 });
 
-export default mongoose.models.Enrollment ||
-  mongoose.model("Enrollment", enrollmentSchema);
+export default mongoose.models.Enrollment || mongoose.model("Enrollment", enrollmentSchema);

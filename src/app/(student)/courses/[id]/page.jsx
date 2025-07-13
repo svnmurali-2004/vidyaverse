@@ -65,7 +65,9 @@ export default function CourseDetailPage({ params }) {
 
   const fetchCourse = async () => {
     try {
-      const response = await fetch(`/api/courses/${courseId}`);
+      const response = await fetch(
+        `/api/courses/${courseId}?includeDetails=true`
+      );
       if (response.ok) {
         const data = await response.json();
         setCourse(data.data);
@@ -290,7 +292,7 @@ export default function CourseDetailPage({ params }) {
                 <span>{lessons.length} lessons</span>
               </div>
               <div className="flex items-center space-x-1">
-                {renderStars(course.averageRating || 0)}
+                {renderStars(course.avgRating || 0)}
                 <span>({course.reviewCount || 0})</span>
               </div>
             </div>
@@ -552,7 +554,7 @@ export default function CourseDetailPage({ params }) {
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
                 <img
-                  src={course.instructor?.image || "/default-avatar.png"}
+                  src={course.instructor?.image || "https://avatar.vercel.sh/svnm"}
                   alt={course.instructor?.name}
                   className="w-16 h-16 rounded-full object-cover"
                 />
@@ -581,10 +583,10 @@ export default function CourseDetailPage({ params }) {
                 <div className="flex items-center space-x-8">
                   <div className="text-center">
                     <div className="text-4xl font-bold">
-                      {course.averageRating?.toFixed(1) || "0.0"}
+                      {course.avgRating?.toFixed(1) || "0.0"}
                     </div>
                     <div className="flex items-center justify-center space-x-1 mt-1">
-                      {renderStars(course.averageRating || 0)}
+                      {renderStars(course.avgRating || 0)}
                     </div>
                     <div className="text-sm text-gray-600 mt-1">
                       {course.reviewCount || 0} reviews

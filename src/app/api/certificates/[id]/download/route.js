@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import dbConnect from "@/lib/db";
+import connectDB from "@/lib/db";
 import Certificate from "@/models/certificate.model";
 import jsPDF from "jspdf";
 
@@ -14,7 +14,7 @@ export async function GET(request, { params }) {
 
     const { id } = await params;
 
-    await dbConnect();
+    await connectDB();
 
     const certificate = await Certificate.findById(id)
       .populate("user", "name email")

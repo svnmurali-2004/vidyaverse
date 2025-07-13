@@ -34,6 +34,15 @@ const certificateSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    revokedAt: {
+      type: Date,
+      default: null,
+    },
+    revokedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -41,7 +50,7 @@ const certificateSchema = new mongoose.Schema(
 );
 
 // Ensure one certificate per user per course
-certificateSchema.index({ userId: 1, courseId: 1 }, { unique: true });
+certificateSchema.index({ user: 1, course: 1 }, { unique: true });
 
 const Certificate =
   mongoose.models.Certificate ||

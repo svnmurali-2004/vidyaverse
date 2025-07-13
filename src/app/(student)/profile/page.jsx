@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import toast from "react-hot-toast";
@@ -25,6 +27,7 @@ import {
   BookOpen,
   Calendar,
   Trophy,
+  Clock,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -156,31 +159,32 @@ export default function ProfilePage() {
   };
 
   const calculateProgress = (enrollment) => {
-    if (!enrollment.course?.lessons?.length) return 0;
-    // Use the new flattened progress structure
-    return enrollment.progressPercentage || 0;
+    // Use the progress percentage from the enrollment object
+    return Math.round(enrollment.progressPercentage || 0);
   };
 
   const handleDownloadCertificate = async (certificateId) => {
     try {
-      const response = await fetch(`/api/certificates/${certificateId}/download`);
+      const response = await fetch(
+        `/api/certificates/${certificateId}/download`
+      );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
+        const a = document.createElement("a");
+        a.style.display = "none";
         a.href = url;
         a.download = `certificate-${certificateId}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
-        toast.success('Certificate downloaded successfully');
+        toast.success("Certificate downloaded successfully");
       } else {
-        toast.error('Failed to download certificate');
+        toast.error("Failed to download certificate");
       }
     } catch (error) {
-      console.error('Error downloading certificate:', error);
-      toast.error('Failed to download certificate');
+      console.error("Error downloading certificate:", error);
+      toast.error("Failed to download certificate");
     }
   };
 
@@ -420,37 +424,49 @@ export default function ProfilePage() {
                     No courses enrolled yet
                   </p>
                   <Button asChild className="mt-4">
-                    <a href="/courses">Browse Courses</a>
+                    <Link href="/courses">Browse Courses</Link>
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {enrollments.map((enrollment) => (
-                    <div key={enrollment._id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div
+                      key={enrollment._id}
+                      className="border rounded-lg p-6 hover:shadow-md transition-shadow"
+                    >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-2">
-                            {enrollment.course?.title}
+                            {enrollment.course?.title || 'Course Title Not Available'}
                           </h3>
                           <div className="flex items-center gap-4 text-sm text-gray-500">
                             <span className="flex items-center gap-1">
                               <BookOpen className="h-4 w-4" />
-                              {enrollment.course?.lessons?.length || enrollment.totalLessons || 0} lessons
+                              {enrollment.totalLessons || 0} lessons
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
-                              Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                              Enrolled:{" "}
+                              {new Date(
+                                enrollment.enrolledAt || enrollment.createdAt
+                              ).toLocaleDateString()}
                             </span>
+                            {enrollment.course?.instructor?.name && (
+                              <span className="flex items-center gap-1">
+                                <User className="h-4 w-4" />
+                                {enrollment.course.instructor.name}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <Badge
                           variant={
-                            enrollment.status === "completed"
+                            calculateProgress(enrollment) >= 100
                               ? "default"
                               : "secondary"
                           }
                         >
-                          {enrollment.status === "completed"
+                          {calculateProgress(enrollment) >= 100
                             ? "Completed"
                             : "In Progress"}
                         </Badge>
@@ -461,38 +477,37 @@ export default function ProfilePage() {
                           <span className="font-medium">Progress</span>
                           <span>{calculateProgress(enrollment)}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-primary h-2 rounded-full transition-all"
-                            style={{
-                              width: `${calculateProgress(enrollment)}%`,
-                            }}
-                          />
-                        </div>
-                        
+                        <Progress 
+                          value={calculateProgress(enrollment)} 
+                          className="w-full h-2"
+                        />
+
                         {enrollment.completedLessons !== undefined && (
                           <div className="text-sm text-gray-600">
-                            {enrollment.completedLessons} of {enrollment.course?.lessons?.length || enrollment.totalLessons || 0} lessons completed
+                            {enrollment.completedLessons} of{" "}
+                            {enrollment.totalLessons || 0} lessons completed
                           </div>
                         )}
                       </div>
 
                       <div className="flex space-x-3 mt-6">
                         <Button size="sm" asChild>
-                          <a href={`/courses/${enrollment.course?._id}/learn`}>
-                            {enrollment.status === "completed" ? "Review Course" : "Continue Learning"}
-                          </a>
+                          <Link href={`/courses/${enrollment.course?._id}/learn`}>
+                            {calculateProgress(enrollment) >= 100
+                              ? "Review Course"
+                              : "Continue Learning"}
+                          </Link>
                         </Button>
                         <Button size="sm" variant="outline" asChild>
-                          <a href={`/courses/${enrollment.course?._id}`}>
+                          <Link href={`/courses/${enrollment.course?._id}`}>
                             View Details
-                          </a>
+                          </Link>
                         </Button>
-                        {enrollment.status === "completed" && (
+                        {calculateProgress(enrollment) >= 100 && (
                           <Button size="sm" variant="outline" asChild>
-                            <a href={`/certificates?courseId=${enrollment.course?._id}`}>
+                            <Link href={`/certificates?courseId=${enrollment.course?._id}`}>
                               View Certificate
-                            </a>
+                            </Link>
                           </Button>
                         )}
                       </div>
@@ -540,11 +555,12 @@ export default function ProfilePage() {
                       <h3 className="font-semibold text-lg mb-2">
                         {certificate.course?.title}
                       </h3>
-                      
+
                       <div className="space-y-2 mb-4 text-sm text-gray-600 dark:text-gray-400">
                         <p className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
-                          Issued: {new Date(certificate.issuedAt).toLocaleDateString()}
+                          Issued:{" "}
+                          {new Date(certificate.issuedAt).toLocaleDateString()}
                         </p>
                         {certificate.finalScore && (
                           <p className="flex items-center gap-2">
@@ -559,15 +575,22 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
-                          onClick={() => handleDownloadCertificate(certificate._id)}
+                          onClick={() =>
+                            handleDownloadCertificate(certificate._id)
+                          }
                           className="bg-white/50 hover:bg-white/70"
                         >
                           Download PDF
                         </Button>
-                        <Button size="sm" variant="outline" asChild className="bg-white/50 hover:bg-white/70">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          asChild
+                          className="bg-white/50 hover:bg-white/70"
+                        >
                           <a
                             href={`/certificates/verify/${certificate._id}`}
                             target="_blank"
@@ -593,7 +616,7 @@ export default function ProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="text-center p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-blue-600 mb-1">
@@ -603,17 +626,29 @@ export default function ProfilePage() {
                     Courses Enrolled
                   </div>
                 </div>
-                
+
+                <div className="text-center p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <BookOpen className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-purple-600 mb-1">
+                    {enrollments.reduce((total, enrollment) => {
+                      return total + (enrollment.totalLessons || 0);
+                    }, 0)}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Total Lessons
+                  </div>
+                </div>
+
                 <div className="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <Trophy className="h-8 w-8 text-green-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-green-600 mb-1">
-                    {enrollments.filter(e => e.status === 'completed').length}
+                    {enrollments.filter((e) => calculateProgress(e) >= 100).length}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     Courses Completed
                   </div>
                 </div>
-                
+
                 <div className="text-center p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                   <Award className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-yellow-600 mb-1">
@@ -627,22 +662,35 @@ export default function ProfilePage() {
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Recent Activity
+                  </h3>
                   {enrollments.length > 0 ? (
                     <div className="space-y-4">
                       {enrollments.slice(0, 5).map((enrollment) => (
-                        <div key={enrollment._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div
+                          key={enrollment._id}
+                          className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                        >
                           <div className="flex items-center space-x-3">
                             <BookOpen className="h-5 w-5 text-blue-600" />
                             <div>
-                              <p className="font-medium">{enrollment.course?.title}</p>
+                              <p className="font-medium">
+                                {enrollment.course?.title}
+                              </p>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {enrollment.status === 'completed' ? 'Completed' : `${calculateProgress(enrollment)}% progress`}
+                                {calculateProgress(enrollment) >= 100
+                                  ? "Completed"
+                                  : `${calculateProgress(
+                                      enrollment
+                                    )}% progress`}
                               </p>
                             </div>
                           </div>
                           <div className="text-sm text-gray-500">
-                            {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                            {new Date(
+                              enrollment.enrolledAt || enrollment.createdAt
+                            ).toLocaleDateString()}
                           </div>
                         </div>
                       ))}

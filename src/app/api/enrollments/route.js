@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
+import connectDB from "@/lib/db";
 import Enrollment from "@/models/enrollment.model";
 import Course from "@/models/course.model";
 import Progress from "@/models/progress.model";
-import dbConnect from "@/lib/db";
+import User from "@/models/user.model";
+import Lesson from "@/models/lesson.model";
 
 export async function GET(request) {
   try {
@@ -13,7 +15,8 @@ export async function GET(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await dbConnect();
+    // Ensure database connection
+    await connectDB();
 
     // Get user's enrollments
     const enrollments = await Enrollment.find({
@@ -31,14 +34,15 @@ export async function GET(request) {
     // Calculate progress for each enrollment
     const enrollmentsWithProgress = await Promise.all(
       enrollments.map(async (enrollment) => {
-        // Get total lessons in course
-        const course = enrollment.course;
-        const totalLessons = course.lessons?.length || 0;
+        // Get total lessons in course by querying lessons collection
+        const totalLessons = await Lesson.countDocuments({
+          course: enrollment.course._id,
+        });
 
         // Get completed lessons count for reference
         const completedLessons = await Progress.countDocuments({
           userId: session.user.id,
-          courseId: course._id,
+          courseId: enrollment.course._id,
           isCompleted: true,
         });
 
@@ -71,7 +75,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await dbConnect();
+    await connectDB();
 
     const { courseId } = await request.json();
 

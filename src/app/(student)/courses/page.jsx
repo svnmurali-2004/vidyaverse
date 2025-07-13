@@ -463,7 +463,7 @@ export default function CoursesPage() {
                   </div>
                   <div className="flex items-center">
                     <Clock className="h-4 w-4 mr-1" />
-                    {course.lessons?.length || 0} lessons
+                    {course.actualLessonCount || course.lessons?.length || 0} lessons
                   </div>
                 </div>
 

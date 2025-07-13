@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
-import dbConnect from "@/lib/db";
+import connectDB from "@/lib/db";
 import Progress from "@/models/progress.model";
 import Enrollment from "@/models/enrollment.model";
 import Lesson from "@/models/lesson.model";
@@ -20,7 +20,7 @@ export async function GET(request) {
       );
     }
 
-    await dbConnect();
+    await connectDB();
 
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get("courseId");
@@ -74,10 +74,8 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
-      data: {
-        progress,
-        courseProgress: Object.values(courseProgress),
-      },
+      data: progress,
+      courseProgress: Object.values(courseProgress),
     });
   } catch (error) {
     console.error("Error fetching progress:", error);
@@ -100,7 +98,7 @@ export async function POST(request) {
       );
     }
 
-    await dbConnect();
+    await connectDB();
 
     const body = await request.json();
     const { courseId, lessonId, completed, watchTime, quizScore } = body;
