@@ -100,7 +100,7 @@ export const authOptions = {
         session.user.role = token.role;
         session.user.name = token.name;
         session.user.email = token.email;
-        session.user.avatar = token.avatar || "https://avatar.vercel.sh/ghfd";
+        session.user.avatar = token.avatar || "https://avatar.vercel.sh/svnm";
       }
       return session;
     },
@@ -113,8 +113,8 @@ export const authOptions = {
       // If it's the same origin, allow it
       if (new URL(url).origin === baseUrl) return url;
 
-      // Default redirect to dashboard (middleware will handle role-based routing)
-      return `${baseUrl}/dashboard`;
+      // Default redirect to root (middleware will handle role-based routing)
+      return baseUrl;
     },
   },
 };

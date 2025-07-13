@@ -38,38 +38,14 @@ export function LoginForm({ className, ...props }) {
       } else {
         toast.success("Signed in successfully!");
 
-        // Wait a bit for session to be available, then get session and redirect
+        // Simple redirect to root - middleware will handle role-based routing
         setTimeout(async () => {
-          try {
-            const session = await getSession();
-            console.log("Session after sign in:", session);
+          // Debug: Check what role the user has
+          const session = await getSession();
+          console.log("User session after sign in:", session);
+          console.log("User role:", session?.user?.role);
 
-            if (session?.user) {
-              if (session.user.role === "admin") {
-                router.push("/admin");
-              } else {
-                router.push("/dashboard");
-              }
-            } else {
-              // Fallback: try again after another delay
-              setTimeout(async () => {
-                const retrySession = await getSession();
-                if (retrySession?.user) {
-                  if (retrySession.user.role === "admin") {
-                    router.push("/admin");
-                  } else {
-                    router.push("/dashboard");
-                  }
-                } else {
-                  // If still no session, redirect to dashboard as fallback
-                  router.push("/dashboard");
-                }
-              }, 1000);
-            }
-          } catch (error) {
-            console.error("Error getting session:", error);
-            router.push("/dashboard"); // Fallback redirect
-          }
+          router.push("/");
         }, 1000);
       }
     } catch (error) {
@@ -84,9 +60,9 @@ export function LoginForm({ className, ...props }) {
     setIsLoading(true);
 
     try {
-      // For OAuth providers, redirect to dashboard and let middleware handle role-based routing
+      // For OAuth providers, redirect to root and let middleware handle role-based routing
       await signIn(provider, {
-        callbackUrl: "/dashboard",
+        callbackUrl: "/",
       });
 
       // Note: The page will redirect, so we don't need to handle anything else here
