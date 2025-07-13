@@ -11,6 +11,8 @@ function AuthRedirectContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    console.log("Auth redirect - Status:", status, "Session:", session);
+    
     if (status === "loading") return;
 
     if (session?.user) {
@@ -34,8 +36,11 @@ function AuthRedirectContent() {
         }
       }, 1000);
     } else {
-      // No session, redirect to sign in
-      router.push("/signin");
+      // No session, redirect to sign in after a short delay
+      console.log("No session found, redirecting to signin");
+      setTimeout(() => {
+        router.push("/signin");
+      }, 1000);
     }
   }, [session, status, router, searchParams]);
 

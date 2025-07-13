@@ -37,13 +37,9 @@ export function LoginForm({ className, ...props }) {
         toast.error("Invalid credentials");
       } else {
         toast.success("Signed in successfully!");
-        // Get session to check user role and redirect accordingly
-        const session = await getSession();
-        if (session?.user?.role === "admin") {
-          router.push("/admin");
-        } else {
-          router.push("/dashboard");
-        }
+
+        // Force refresh the session and then redirect
+        window.location.href = "/auth/redirect";
       }
     } catch (error) {
       console.error("Sign in error:", error);
