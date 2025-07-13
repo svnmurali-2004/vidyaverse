@@ -44,8 +44,12 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // ✅ All other protected API routes (except auth)
-    if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
+    // ✅ All other protected API routes (except NextAuth routes)
+    if (
+      pathname.startsWith("/api/") &&
+      !pathname.startsWith("/api/auth") &&
+      pathname !== "/api/session"
+    ) {
       if (!token) {
         return new NextResponse("Unauthorized", { status: 401 });
       }
@@ -82,7 +86,12 @@ export default withAuth(
           pathname.includes(".") ||
           pathname === "/favicon.ico";
 
-        if (isPublic || isAsset || pathname.startsWith("/api/auth")) {
+        if (
+          isPublic ||
+          isAsset ||
+          pathname.startsWith("/api/auth") ||
+          pathname === "/api/session"
+        ) {
           return true;
         }
 
