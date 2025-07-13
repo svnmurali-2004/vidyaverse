@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Edit3, 
-  Save, 
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import toast from "react-hot-toast";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Edit3,
+  Save,
   X,
   Award,
   BookOpen,
   Calendar,
-  Trophy
-} from 'lucide-react';
+  Trophy,
+} from "lucide-react";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
@@ -36,20 +36,20 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [certificates, setCertificates] = useState([]);
-  
+
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    location: '',
-    bio: '',
-    profession: '',
-    interests: ''
+    name: "",
+    email: "",
+    phone: "",
+    location: "",
+    bio: "",
+    profession: "",
+    interests: "",
   });
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/signin');
+    if (status === "unauthenticated") {
+      router.push("/signin");
       return;
     }
 
@@ -64,21 +64,22 @@ export default function ProfilePage() {
     try {
       const response = await fetch(`/api/users/${session.user.id}`);
       if (response.ok) {
-        const userData = await response.json();
+        const result = await response.json();
+        const userData = result.data || result; // Handle both response formats
         setUser(userData);
         setFormData({
-          name: userData.name || '',
-          email: userData.email || '',
-          phone: userData.phone || '',
-          location: userData.location || '',
-          bio: userData.bio || '',
-          profession: userData.profession || '',
-          interests: userData.interests || ''
+          name: userData.name || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          location: userData.location || "",
+          bio: userData.bio || "",
+          profession: userData.profession || "",
+          interests: userData.interests || "",
         });
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
-      toast.error('Failed to load profile');
+      console.error("Error fetching user profile:", error);
+      toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -86,25 +87,29 @@ export default function ProfilePage() {
 
   const fetchEnrollments = async () => {
     try {
-      const response = await fetch('/api/enrollments');
+      const response = await fetch("/api/enrollments");
       if (response.ok) {
-        const data = await response.json();
-        setEnrollments(data.enrollments || []);
+        const result = await response.json();
+        setEnrollments(result.enrollments || result.data || []);
+      } else {
+        console.error("Failed to fetch enrollments:", response.statusText);
       }
     } catch (error) {
-      console.error('Error fetching enrollments:', error);
+      console.error("Error fetching enrollments:", error);
     }
   };
 
   const fetchCertificates = async () => {
     try {
-      const response = await fetch('/api/certificates');
+      const response = await fetch("/api/certificates");
       if (response.ok) {
-        const data = await response.json();
-        setCertificates(data.certificates || []);
+        const result = await response.json();
+        setCertificates(result.certificates || result.data || []);
+      } else {
+        console.error("Failed to fetch certificates:", response.statusText);
       }
     } catch (error) {
-      console.error('Error fetching certificates:', error);
+      console.error("Error fetching certificates:", error);
     }
   };
 
@@ -112,24 +117,26 @@ export default function ProfilePage() {
     setSaving(true);
     try {
       const response = await fetch(`/api/users/${session.user.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        const updatedUser = await response.json();
+        const result = await response.json();
+        const updatedUser = result.data || result; // Handle both response formats
         setUser(updatedUser);
         setEditing(false);
-        toast.success('Profile updated successfully');
+        toast.success("Profile updated successfully");
       } else {
-        toast.error('Failed to update profile');
+        const errorResult = await response.json();
+        toast.error(errorResult.error || "Failed to update profile");
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
     } finally {
       setSaving(false);
     }
@@ -137,13 +144,13 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      location: user?.location || '',
-      bio: user?.bio || '',
-      profession: user?.profession || '',
-      interests: user?.interests || ''
+      name: user?.name || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      location: user?.location || "",
+      bio: user?.bio || "",
+      profession: user?.profession || "",
+      interests: user?.interests || "",
     });
     setEditing(false);
   };
@@ -152,6 +159,29 @@ export default function ProfilePage() {
     if (!enrollment.course?.lessons?.length) return 0;
     // Use the new flattened progress structure
     return enrollment.progressPercentage || 0;
+  };
+
+  const handleDownloadCertificate = async (certificateId) => {
+    try {
+      const response = await fetch(`/api/certificates/${certificateId}/download`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `certificate-${certificateId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        toast.success('Certificate downloaded successfully');
+      } else {
+        toast.error('Failed to download certificate');
+      }
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      toast.error('Failed to download certificate');
+    }
   };
 
   if (loading) {
@@ -189,19 +219,21 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-16 w-16">
-                    <div className="h-full w-full bg-primary/10 flex items-center justify-center">
+                    <AvatarFallback className="bg-primary/10">
                       <User className="h-8 w-8 text-primary" />
-                    </div>
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <CardTitle className="text-xl">{user?.name}</CardTitle>
-                    <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {user?.email}
+                    </p>
                     <Badge variant="outline" className="mt-1">
-                      {user?.role || 'Student'}
+                      {user?.role || "Student"}
                     </Badge>
                   </div>
                 </div>
-                
+
                 {!editing ? (
                   <Button onClick={() => setEditing(true)} variant="outline">
                     <Edit3 className="h-4 w-4 mr-2" />
@@ -211,7 +243,7 @@ export default function ProfilePage() {
                   <div className="flex space-x-2">
                     <Button onClick={handleSave} disabled={saving}>
                       <Save className="h-4 w-4 mr-2" />
-                      {saving ? 'Saving...' : 'Save'}
+                      {saving ? "Saving..." : "Save"}
                     </Button>
                     <Button onClick={handleCancel} variant="outline">
                       <X className="h-4 w-4 mr-2" />
@@ -233,11 +265,15 @@ export default function ProfilePage() {
                         <Input
                           id="name"
                           value={formData.name}
-                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
                           className="flex-1"
                         />
                       ) : (
-                        <span className="text-gray-900 dark:text-gray-100">{user?.name || 'Not provided'}</span>
+                        <span className="text-gray-900 dark:text-gray-100">
+                          {user?.name || "Not provided"}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -246,9 +282,13 @@ export default function ProfilePage() {
                     <Label htmlFor="email">Email</Label>
                     <div className="flex items-center mt-1">
                       <Mail className="h-4 w-4 text-gray-400 mr-2" />
-                      <span className="text-gray-900 dark:text-gray-100">{user?.email}</span>
+                      <span className="text-gray-900 dark:text-gray-100">
+                        {user?.email}
+                      </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Email cannot be changed
+                    </p>
                   </div>
 
                   <div>
@@ -259,11 +299,15 @@ export default function ProfilePage() {
                         <Input
                           id="phone"
                           value={formData.phone}
-                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: e.target.value })
+                          }
                           className="flex-1"
                         />
                       ) : (
-                        <span className="text-gray-900 dark:text-gray-100">{user?.phone || 'Not provided'}</span>
+                        <span className="text-gray-900 dark:text-gray-100">
+                          {user?.phone || "Not provided"}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -276,11 +320,18 @@ export default function ProfilePage() {
                         <Input
                           id="location"
                           value={formData.location}
-                          onChange={(e) => setFormData({...formData, location: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: e.target.value,
+                            })
+                          }
                           className="flex-1"
                         />
                       ) : (
-                        <span className="text-gray-900 dark:text-gray-100">{user?.location || 'Not provided'}</span>
+                        <span className="text-gray-900 dark:text-gray-100">
+                          {user?.location || "Not provided"}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -293,11 +344,18 @@ export default function ProfilePage() {
                       <Input
                         id="profession"
                         value={formData.profession}
-                        onChange={(e) => setFormData({...formData, profession: e.target.value})}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            profession: e.target.value,
+                          })
+                        }
                         placeholder="e.g., Software Developer"
                       />
                     ) : (
-                      <p className="text-gray-900 dark:text-gray-100 mt-1">{user?.profession || 'Not provided'}</p>
+                      <p className="text-gray-900 dark:text-gray-100 mt-1">
+                        {user?.profession || "Not provided"}
+                      </p>
                     )}
                   </div>
 
@@ -307,11 +365,18 @@ export default function ProfilePage() {
                       <Input
                         id="interests"
                         value={formData.interests}
-                        onChange={(e) => setFormData({...formData, interests: e.target.value})}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            interests: e.target.value,
+                          })
+                        }
                         placeholder="e.g., Web Development, AI, Design"
                       />
                     ) : (
-                      <p className="text-gray-900 dark:text-gray-100 mt-1">{user?.interests || 'Not provided'}</p>
+                      <p className="text-gray-900 dark:text-gray-100 mt-1">
+                        {user?.interests || "Not provided"}
+                      </p>
                     )}
                   </div>
 
@@ -321,12 +386,16 @@ export default function ProfilePage() {
                       <Textarea
                         id="bio"
                         value={formData.bio}
-                        onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                        onChange={(e) =>
+                          setFormData({ ...formData, bio: e.target.value })
+                        }
                         placeholder="Tell us about yourself..."
                         rows={4}
                       />
                     ) : (
-                      <p className="text-gray-900 dark:text-gray-100 mt-1">{user?.bio || 'No bio provided'}</p>
+                      <p className="text-gray-900 dark:text-gray-100 mt-1">
+                        {user?.bio || "No bio provided"}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -347,7 +416,9 @@ export default function ProfilePage() {
               {enrollments.length === 0 ? (
                 <div className="text-center py-8">
                   <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400">No courses enrolled yet</p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No courses enrolled yet
+                  </p>
                   <Button asChild className="mt-4">
                     <a href="/courses">Browse Courses</a>
                   </Button>
@@ -355,36 +426,61 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-4">
                   {enrollments.map((enrollment) => (
-                    <div key={enrollment._id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-semibold">{enrollment.course?.title}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                          </p>
+                    <div key={enrollment._id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg mb-2">
+                            {enrollment.course?.title}
+                          </h3>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <BookOpen className="h-4 w-4" />
+                              {enrollment.course?.lessons?.length || enrollment.totalLessons || 0} lessons
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                            </span>
+                          </div>
                         </div>
-                        <Badge variant={enrollment.status === 'completed' ? 'default' : 'secondary'}>
-                          {enrollment.status === 'completed' ? 'Completed' : 'In Progress'}
+                        <Badge
+                          variant={
+                            enrollment.status === "completed"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {enrollment.status === "completed"
+                            ? "Completed"
+                            : "In Progress"}
                         </Badge>
                       </div>
-                      
-                      <div className="space-y-2">
+
+                      <div className="space-y-3">
                         <div className="flex justify-between text-sm">
-                          <span>Progress</span>
+                          <span className="font-medium">Progress</span>
                           <span>{calculateProgress(enrollment)}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-primary h-2 rounded-full transition-all"
-                            style={{ width: `${calculateProgress(enrollment)}%` }}
+                            style={{
+                              width: `${calculateProgress(enrollment)}%`,
+                            }}
                           />
                         </div>
+                        
+                        {enrollment.completedLessons !== undefined && (
+                          <div className="text-sm text-gray-600">
+                            {enrollment.completedLessons} of {enrollment.course?.lessons?.length || enrollment.totalLessons || 0} lessons completed
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex space-x-2 mt-4">
+                      <div className="flex space-x-3 mt-6">
                         <Button size="sm" asChild>
                           <a href={`/courses/${enrollment.course?._id}/learn`}>
-                            Continue Learning
+                            {enrollment.status === "completed" ? "Review Course" : "Continue Learning"}
                           </a>
                         </Button>
                         <Button size="sm" variant="outline" asChild>
@@ -392,6 +488,13 @@ export default function ProfilePage() {
                             View Details
                           </a>
                         </Button>
+                        {enrollment.status === "completed" && (
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={`/certificates?courseId=${enrollment.course?._id}`}>
+                              View Certificate
+                            </a>
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -413,29 +516,62 @@ export default function ProfilePage() {
               {certificates.length === 0 ? (
                 <div className="text-center py-8">
                   <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400">No certificates earned yet</p>
-                  <p className="text-sm text-gray-500 mt-2">Complete courses to earn certificates</p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No certificates earned yet
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Complete courses to earn certificates
+                  </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {certificates.map((certificate) => (
-                    <div key={certificate._id} className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20">
-                      <div className="flex items-start justify-between mb-3">
-                        <Trophy className="h-8 w-8 text-yellow-600" />
-                        <Badge variant="outline">Verified</Badge>
+                    <div
+                      key={certificate._id}
+                      className="border rounded-lg p-6 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 hover:shadow-lg transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <Trophy className="h-10 w-10 text-yellow-600" />
+                        <Badge variant="outline" className="bg-white/50">
+                          Verified
+                        </Badge>
                       </div>
+
+                      <h3 className="font-semibold text-lg mb-2">
+                        {certificate.course?.title}
+                      </h3>
                       
-                      <h3 className="font-semibold mb-1">{certificate.course?.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                        Issued: {new Date(certificate.issuedAt).toLocaleDateString()}
-                      </p>
-                      
+                      <div className="space-y-2 mb-4 text-sm text-gray-600 dark:text-gray-400">
+                        <p className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Issued: {new Date(certificate.issuedAt).toLocaleDateString()}
+                        </p>
+                        {certificate.finalScore && (
+                          <p className="flex items-center gap-2">
+                            <Award className="h-4 w-4" />
+                            Final Score: {certificate.finalScore}%
+                          </p>
+                        )}
+                        <p className="flex items-center gap-2">
+                          <Trophy className="h-4 w-4" />
+                          Certificate ID: {certificate.certificateId}
+                        </p>
+                      </div>
+
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleDownloadCertificate(certificate._id)}
+                          className="bg-white/50 hover:bg-white/70"
+                        >
                           Download PDF
                         </Button>
-                        <Button size="sm" variant="outline" asChild>
-                          <a href={`/certificates/verify/${certificate._id}`} target="_blank">
+                        <Button size="sm" variant="outline" asChild className="bg-white/50 hover:bg-white/70">
+                          <a
+                            href={`/certificates/verify/${certificate._id}`}
+                            target="_blank"
+                          >
                             Verify
                           </a>
                         </Button>
@@ -453,13 +589,76 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Calendar className="h-5 w-5 mr-2" />
-                Recent Activity
+                Learning Overview
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">Activity tracking coming soon</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="text-center p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-blue-600 mb-1">
+                    {enrollments.length}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Courses Enrolled
+                  </div>
+                </div>
+                
+                <div className="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <Trophy className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-green-600 mb-1">
+                    {enrollments.filter(e => e.status === 'completed').length}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Courses Completed
+                  </div>
+                </div>
+                
+                <div className="text-center p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <Award className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-yellow-600 mb-1">
+                    {certificates.length}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Certificates Earned
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+                  {enrollments.length > 0 ? (
+                    <div className="space-y-4">
+                      {enrollments.slice(0, 5).map((enrollment) => (
+                        <div key={enrollment._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <BookOpen className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium">{enrollment.course?.title}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {enrollment.status === 'completed' ? 'Completed' : `${calculateProgress(enrollment)}% progress`}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400">
+                        No learning activity yet
+                      </p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Enroll in courses to start your learning journey
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

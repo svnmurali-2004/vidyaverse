@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { verifyPayment } from "@/lib/razorpay";
+import { verifyRazorpayPayment } from "@/lib/razorpay";
 import dbConnect from "@/lib/db";
 import Order from "@/models/order.model";
 import Enrollment from "@/models/enrollment.model";
@@ -28,13 +28,13 @@ export async function POST(request) {
     } = body;
 
     // Verify payment signature
-    const isValidPayment = verifyPayment(
+    const paymentVerification = await verifyRazorpayPayment({
       razorpay_order_id,
       razorpay_payment_id,
-      razorpay_signature
-    );
+      razorpay_signature,
+    });
 
-    if (!isValidPayment) {
+    if (!paymentVerification.isValid) {
       return NextResponse.json(
         { success: false, error: "Payment verification failed" },
         { status: 400 }

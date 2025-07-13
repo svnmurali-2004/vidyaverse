@@ -86,14 +86,29 @@ export async function PUT(request, { params }) {
     }
 
     const body = await request.json();
-    const { name, email, bio, role, password } = body;
+    const {
+      name,
+      email,
+      bio,
+      role,
+      password,
+      phone,
+      location,
+      profession,
+      interests,
+    } = body;
 
     const updateData = {
       updatedAt: new Date(),
     };
 
+    // Fields that users can update themselves
     if (name) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
+    if (phone !== undefined) updateData.phone = phone;
+    if (location !== undefined) updateData.location = location;
+    if (profession !== undefined) updateData.profession = profession;
+    if (interests !== undefined) updateData.interests = interests;
 
     // Only admin can change email and role
     if (currentUser.role === "admin") {

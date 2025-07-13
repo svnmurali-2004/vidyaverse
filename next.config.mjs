@@ -1,7 +1,7 @@
-import withPWAInit from 'next-pwa';
+import withPWAInit from "next-pwa";
 
 const withPWA = withPWAInit({
-  dest: 'public',
+  dest: "public",
   register: true,
   skipWaiting: true,
   disable: false, // Enable PWA in development for testing
@@ -9,9 +9,9 @@ const withPWA = withPWAInit({
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
-      handler: 'NetworkFirst',
+      handler: "NetworkFirst",
       options: {
-        cacheName: 'offlineCache',
+        cacheName: "offlineCache",
         expiration: {
           maxEntries: 200,
         },
@@ -22,9 +22,9 @@ const withPWA = withPWAInit({
     },
     {
       urlPattern: /\.(?:png|jpg|jpeg|svg)$/,
-      handler: 'CacheFirst',
+      handler: "CacheFirst",
       options: {
-        cacheName: 'images',
+        cacheName: "images",
         expiration: {
           maxEntries: 60,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
@@ -33,9 +33,9 @@ const withPWA = withPWAInit({
     },
     {
       urlPattern: /api\/.*$/,
-      handler: 'NetworkFirst',
+      handler: "NetworkFirst",
       options: {
-        cacheName: 'apis',
+        cacheName: "apis",
         expiration: {
           maxEntries: 16,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours

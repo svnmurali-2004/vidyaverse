@@ -1,13 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   Mail,
   Phone,
@@ -89,25 +95,29 @@ export default function ContactPage() {
   const faqs = [
     {
       question: "How do I enroll in a course?",
-      answer: "You can enroll in any course by creating an account, browsing our course catalog, and clicking the 'Enroll Now' button on your desired course.",
+      answer:
+        "You can enroll in any course by creating an account, browsing our course catalog, and clicking the 'Enroll Now' button on your desired course.",
     },
     {
       question: "Do you offer refunds?",
-      answer: "Yes, we offer a 30-day money-back guarantee for all paid courses. If you're not satisfied, contact us for a full refund.",
+      answer:
+        "Yes, we offer a 30-day money-back guarantee for all paid courses. If you're not satisfied, contact us for a full refund.",
     },
     {
       question: "Can I access courses on mobile devices?",
-      answer: "Absolutely! VidyaVerse is fully responsive and works on all devices. You can also install our PWA for a native app experience.",
+      answer:
+        "Absolutely! VidyaVerse is fully responsive and works on all devices. You can also install our PWA for a native app experience.",
     },
     {
       question: "Do you provide certificates?",
-      answer: "Yes, you'll receive a certificate of completion for each course you finish. These certificates can be shared on LinkedIn and other platforms.",
+      answer:
+        "Yes, you'll receive a certificate of completion for each course you finish. These certificates can be shared on LinkedIn and other platforms.",
     },
   ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -119,9 +129,11 @@ export default function ContactPage() {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast.success("Message sent successfully! We'll get back to you within 24 hours.");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      toast.success(
+        "Message sent successfully! We'll get back to you within 24 hours."
+      );
       setFormData({
         name: "",
         email: "",
@@ -147,7 +159,8 @@ export default function ContactPage() {
                 Contact Us
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
-                We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                We'd love to hear from you. Send us a message and we'll respond
+                as soon as possible.
               </p>
             </div>
             <Link href="/">
@@ -171,7 +184,8 @@ export default function ContactPage() {
                   Send us a Message
                 </CardTitle>
                 <CardDescription>
-                  Fill out the form below and we'll get back to you as soon as possible.
+                  Fill out the form below and we'll get back to you as soon as
+                  possible.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -186,7 +200,12 @@ export default function ContactPage() {
                         <button
                           key={type.value}
                           type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, type: type.value }))}
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              type: type.value,
+                            }))
+                          }
                           className={`p-3 rounded-lg border text-left transition-colors ${
                             formData.type === type.value
                               ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
@@ -196,7 +215,9 @@ export default function ContactPage() {
                           <div className="flex items-start space-x-3">
                             <type.icon className="h-5 w-5 text-blue-600 mt-0.5" />
                             <div>
-                              <div className="font-medium text-sm">{type.label}</div>
+                              <div className="font-medium text-sm">
+                                {type.label}
+                              </div>
                               <div className="text-xs text-gray-600 dark:text-gray-400">
                                 {type.description}
                               </div>
@@ -210,7 +231,10 @@ export default function ContactPage() {
                   {/* Name and Email */}
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >
                         Full Name *
                       </label>
                       <Input
@@ -224,7 +248,10 @@ export default function ContactPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >
                         Email Address *
                       </label>
                       <Input
@@ -241,7 +268,10 @@ export default function ContactPage() {
 
                   {/* Subject */}
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label
+                      htmlFor="subject"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
                       Subject *
                     </label>
                     <Input
@@ -257,7 +287,10 @@ export default function ContactPage() {
 
                   {/* Message */}
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label
+                      htmlFor="message"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
                       Message *
                     </label>
                     <Textarea
@@ -272,9 +305,9 @@ export default function ContactPage() {
                   </div>
 
                   {/* Submit Button */}
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -339,7 +372,8 @@ export default function ContactPage() {
                     Quick Response
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    We typically respond to all inquiries within 24 hours during business days.
+                    We typically respond to all inquiries within 24 hours during
+                    business days.
                   </p>
                 </div>
               </CardContent>
@@ -378,7 +412,8 @@ export default function ContactPage() {
               Frequently Asked Questions
             </h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Can't find what you're looking for? Check out these common questions and answers.
+              Can't find what you're looking for? Check out these common
+              questions and answers.
             </p>
           </div>
 
@@ -401,9 +436,7 @@ export default function ContactPage() {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Still have questions?
             </p>
-            <Button variant="outline">
-              View Full FAQ
-            </Button>
+            <Button variant="outline">View Full FAQ</Button>
           </div>
         </div>
       </div>

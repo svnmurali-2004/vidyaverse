@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { Star, ThumbsUp, User, Calendar, MessageSquare } from "lucide-react";
 
 export default function CourseReviews({ courseId }) {

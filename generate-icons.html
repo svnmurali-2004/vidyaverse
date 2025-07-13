@@ -1,40 +1,42 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>VidyaVerse PWA Icon Generator</title>
 </head>
+
 <body>
     <canvas id="canvas" style="display: none;"></canvas>
     <script>
         // Generate PWA icons for VidyaVerse
         const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
-        
+
         function createIcon(size) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
-            
+
             canvas.width = size;
             canvas.height = size;
-            
+
             // Background
             ctx.fillStyle = '#2563eb';
             ctx.fillRect(0, 0, size, size);
-            
+
             // White circle
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(size/2, size/2, size * 0.35, 0, 2 * Math.PI);
+            ctx.arc(size / 2, size / 2, size * 0.35, 0, 2 * Math.PI);
             ctx.fill();
-            
+
             // Blue "V" letter
             ctx.fillStyle = '#2563eb';
             ctx.font = `bold ${size * 0.4}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('V', size/2, size/2);
-            
+            ctx.fillText('V', size / 2, size / 2);
+
             // Convert to blob and download
-            canvas.toBlob(function(blob) {
+            canvas.toBlob(function (blob) {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -43,13 +45,14 @@
                 URL.revokeObjectURL(url);
             });
         }
-        
+
         // Generate all icons
         sizes.forEach((size, index) => {
             setTimeout(() => createIcon(size), index * 1000);
         });
-        
+
         document.body.innerHTML = '<h1>Generating VidyaVerse PWA Icons...</h1><p>Downloads will start automatically. Save them to public/icons/ folder.</p>';
     </script>
 </body>
+
 </html>

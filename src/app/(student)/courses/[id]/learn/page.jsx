@@ -300,7 +300,7 @@ export default function LearnPage({ params }) {
               <Menu className="h-4 w-4" />
             )}
           </Button>
-          
+
           {/* Desktop sidebar toggle */}
           <Button
             variant="ghost"
@@ -320,12 +320,12 @@ export default function LearnPage({ params }) {
       <div className="flex-1 flex">
         {/* Mobile overlay */}
         {sidebarOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
-        
+
         {/* Sidebar */}
         <aside
           className={`w-80 bg-white dark:bg-gray-800 border-r transition-all duration-200 ${
@@ -413,18 +413,24 @@ export default function LearnPage({ params }) {
             </div>
           </div>
         </aside>
-        
+
         {/* Main Content */}
         <main className="flex-1 flex flex-col">
           {/* Video Player */}
-          <div className={`bg-black ${
-            sidebarOpen ? "lg:ml-80" : ""
-          } transition-all duration-200`}>{renderVideoPlayer()}</div>
+          <div
+            className={`bg-black ${
+              sidebarOpen ? "lg:ml-80" : ""
+            } transition-all duration-200`}
+          >
+            {renderVideoPlayer()}
+          </div>
 
           {/* Lesson Content */}
-          <div className={`flex-1 ${
-            sidebarOpen ? "lg:ml-80" : ""
-          } transition-all duration-200`}>
+          <div
+            className={`flex-1 ${
+              sidebarOpen ? "lg:ml-80" : ""
+            } transition-all duration-200`}
+          >
             <div className="p-6 max-w-4xl mx-auto">
               {currentLesson && (
                 <div className="space-y-6">

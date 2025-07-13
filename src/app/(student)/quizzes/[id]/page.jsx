@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import QuizTaker from '@/components/QuizTaker';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import {
   Clock,
   Users,

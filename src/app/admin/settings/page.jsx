@@ -24,7 +24,7 @@ import {
   Shield,
   AlertCircle,
 } from "lucide-react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();

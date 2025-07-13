@@ -15,11 +15,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 import Link from "next/link";
 
 export function SignUpForm({ className, ...props }) {
@@ -298,21 +293,16 @@ export function SignUpForm({ className, ...props }) {
                 <div className="grid gap-3">
                   <Label htmlFor="otp">Verification Code</Label>
                   <div className="flex justify-center">
-                    <InputOTP
+                    <Input
+                      id="otp"
+                      type="text"
+                      placeholder="Enter 6-digit code"
                       maxLength={6}
                       value={otp}
-                      onChange={(value) => setOtp(value)}
+                      onChange={(e) => setOtp(e.target.value)}
                       disabled={isLoading}
-                    >
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
+                      className="text-center text-2xl tracking-widest w-48"
+                    />
                   </div>
                   <p className="text-center text-sm text-muted-foreground">
                     Enter the 6-digit code sent to {formData.email}

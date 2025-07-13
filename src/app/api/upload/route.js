@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { uploadToTigris } from "@/lib/tigris";
+import { put } from "@vercel/blob";
 
 export async function POST(request) {
   try {
@@ -21,10 +21,13 @@ export async function POST(request) {
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Invalid file type. Only JPEG, PNG, and WebP images are allowed." },
+        {
+          error:
+            "Invalid file type. Only JPEG, PNG, and WebP images are allowed.",
+        },
         { status: 400 }
       );
     }
@@ -38,12 +41,19 @@ export async function POST(request) {
       );
     }
 
-    // Upload to Tigris
-    const fileUrl = await uploadToTigris(file, folder);
+    // Generate unique filename
+    const timestamp = Date.now();
+    const filename = `${folder}/${timestamp}-${file.name}`;
+
+    // Upload to Vercel Blob
+    const blob = await put(filename, file, {
+      access: "public",
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
 
     return NextResponse.json({
       message: "File uploaded successfully",
-      url: fileUrl,
+      url: blob.url,
     });
   } catch (error) {
     console.error("Error uploading file:", error);

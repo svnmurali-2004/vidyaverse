@@ -19,11 +19,11 @@ export default function AdminLayout({ children }) {
       return;
     }
 
-    // Optional: Check if user has admin role
-    // if (session.user?.role !== "admin") {
-    //   router.push("/")
-    //   return
-    // }
+    // Check if user has admin role
+    if (session.user?.role !== "admin") {
+      router.push("/");
+      return;
+    }
   }, [session, status, router]);
 
   if (status === "loading") {
@@ -35,6 +35,11 @@ export default function AdminLayout({ children }) {
   }
 
   if (!session) {
+    return null; // Will redirect
+  }
+
+  // Also check role here to prevent flash of admin content
+  if (session.user?.role !== "admin") {
     return null; // Will redirect
   }
 

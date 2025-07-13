@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card-temp";
+import { Button } from "@/components/ui/button-temp";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
@@ -29,17 +29,20 @@ export default function AboutPage() {
     {
       icon: Target,
       title: "Excellence",
-      description: "We strive for the highest quality in education and learning experiences.",
+      description:
+        "We strive for the highest quality in education and learning experiences.",
     },
     {
       icon: Heart,
       title: "Accessibility",
-      description: "Making quality education accessible to everyone, everywhere.",
+      description:
+        "Making quality education accessible to everyone, everywhere.",
     },
     {
       icon: Globe,
       title: "Innovation",
-      description: "Embracing cutting-edge technology to enhance learning outcomes.",
+      description:
+        "Embracing cutting-edge technology to enhance learning outcomes.",
     },
     {
       icon: Lightbulb,
@@ -52,13 +55,15 @@ export default function AboutPage() {
     {
       name: "Dr. Sarah Johnson",
       role: "Founder & CEO",
-      description: "Former Stanford professor with 15+ years in educational technology.",
+      description:
+        "Former Stanford professor with 15+ years in educational technology.",
       image: "/team/sarah.jpg",
     },
     {
       name: "Michael Chen",
       role: "CTO",
-      description: "Expert in AI and machine learning with a passion for education.",
+      description:
+        "Expert in AI and machine learning with a passion for education.",
       image: "/team/michael.jpg",
     },
     {
@@ -70,7 +75,8 @@ export default function AboutPage() {
     {
       name: "David Kim",
       role: "Head of Student Experience",
-      description: "UX expert focused on creating engaging learning experiences.",
+      description:
+        "UX expert focused on creating engaging learning experiences.",
       image: "/team/david.jpg",
     },
   ];
@@ -90,9 +96,7 @@ export default function AboutPage() {
               </p>
             </div>
             <Link href="/">
-              <Button variant="outline">
-                Back to Home
-              </Button>
+              <Button variant="outline">Back to Home</Button>
             </Link>
           </div>
         </div>
@@ -106,9 +110,10 @@ export default function AboutPage() {
               Our Mission
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
-              At VidyaVerse, we believe that quality education should be accessible to everyone, 
-              everywhere. We're on a mission to democratize learning by providing world-class 
-              educational content through innovative technology and engaging experiences.
+              At VidyaVerse, we believe that quality education should be
+              accessible to everyone, everywhere. We're on a mission to
+              democratize learning by providing world-class educational content
+              through innovative technology and engaging experiences.
             </p>
             <Badge variant="outline" className="text-lg px-6 py-2">
               "Vidya" means knowledge in Sanskrit
@@ -143,21 +148,23 @@ export default function AboutPage() {
             </h3>
             <div className="space-y-4 text-gray-600 dark:text-gray-300">
               <p>
-                VidyaVerse was born from a simple observation: traditional education 
-                wasn't keeping pace with the rapidly changing world. Our founders, 
-                a team of educators and technologists, saw an opportunity to bridge 
-                this gap.
+                VidyaVerse was born from a simple observation: traditional
+                education wasn't keeping pace with the rapidly changing world.
+                Our founders, a team of educators and technologists, saw an
+                opportunity to bridge this gap.
               </p>
               <p>
-                Since our launch in 2020, we've grown from a small startup with 
-                big dreams to a global platform serving learners in over 190 countries. 
-                Our approach combines the best of traditional pedagogy with cutting-edge 
-                technology to create learning experiences that are both effective and engaging.
+                Since our launch in 2020, we've grown from a small startup with
+                big dreams to a global platform serving learners in over 190
+                countries. Our approach combines the best of traditional
+                pedagogy with cutting-edge technology to create learning
+                experiences that are both effective and engaging.
               </p>
               <p>
-                Today, we continue to innovate, adding new features like AI-powered 
-                personalization, interactive assessments, and collaborative learning 
-                tools that help our students achieve their goals faster than ever before.
+                Today, we continue to innovate, adding new features like
+                AI-powered personalization, interactive assessments, and
+                collaborative learning tools that help our students achieve
+                their goals faster than ever before.
               </p>
             </div>
           </div>
@@ -186,7 +193,10 @@ export default function AboutPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+              <Card
+                key={index}
+                className="text-center hover:shadow-lg transition-shadow"
+              >
                 <CardContent className="p-6">
                   <value.icon className="h-12 w-12 mx-auto mb-4 text-blue-600" />
                   <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
@@ -203,38 +213,44 @@ export default function AboutPage() {
 
         {/* Team Section - Temporarily Hidden */}
         {false && (
-        <section>
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Meet Our Team
-            </h3>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              The passionate individuals behind VidyaVerse's success
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {team.map((member, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-2xl font-bold">
-                      {member.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                  <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
-                    {member.name}
-                  </h4>
-                  <p className="text-blue-600 dark:text-blue-400 font-medium mb-3">
-                    {member.role}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {member.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+          <section>
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                Meet Our Team
+              </h3>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                The passionate individuals behind VidyaVerse's success
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {team.map((member, index) => (
+                <Card
+                  key={index}
+                  className="text-center hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="p-6">
+                    <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-2xl font-bold">
+                        {member.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </span>
+                    </div>
+                    <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+                      {member.name}
+                    </h4>
+                    <p className="text-blue-600 dark:text-blue-400 font-medium mb-3">
+                      {member.role}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {member.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Call to Action */}
@@ -246,17 +262,26 @@ export default function AboutPage() {
                 Ready to Start Your Learning Journey?
               </h3>
               <p className="text-xl mb-8 text-blue-100">
-                Join thousands of students who are already transforming their careers with VidyaVerse
+                Join thousands of students who are already transforming their
+                careers with VidyaVerse
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/courses">
-                  <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                  >
                     Browse Courses
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link href="/contact">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-blue-600">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-blue-600"
+                  >
                     Contact Us
                   </Button>
                 </Link>

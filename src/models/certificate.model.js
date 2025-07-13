@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 const certificateSchema = new mongoose.Schema(
   {
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    courseId: {
+    course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
       required: true,

@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema(
       enum: ["credentials", "google", "github"],
       default: "credentials",
     },
+    // Profile fields
+    phone: String,
+    location: String,
+    bio: String,
+    profession: String,
+    interests: String,
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
   },
