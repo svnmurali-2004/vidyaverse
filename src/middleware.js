@@ -6,48 +6,82 @@ export default withAuth(
     const token = req.nextauth.token;
     const { pathname } = req.nextUrl;
 
-    console.log("🔍 MIDDLEWARE DEBUG:", {
-      pathname,
-      hasToken: !!token,
-      tokenRole: token?.role,
-      tokenEmail: token?.email,
-      timestamp: new Date().toISOString(),
-    });
+    // Skip detailed logging for static assets and common requests
+    const isAsset =
+      pathname.startsWith("/_next") ||
+      pathname.includes(".") ||
+      pathname.startsWith("/favicon");
+
+    if (!isAsset) {
+      console.log("🔍 MIDDLEWARE DEBUG:", {
+        pathname,
+        hasToken: !!token,
+        tokenRole: token?.role,
+        tokenEmail: token?.email,
+        method: req.method,
+        userAgent: req.headers.get("user-agent")?.includes("Chrome-Lighthouse")
+          ? "Lighthouse"
+          : "Browser",
+        purpose: req.headers.get("purpose") || "navigation",
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     // Allow access to auth pages for unauthenticated users
     if (pathname.startsWith("/signin") || pathname.startsWith("/signup")) {
       console.log("📝 Auth page accessed:", pathname);
-      // If user is already authenticated, redirect to appropriate dashboard
-      if (token) {
-        const redirectUrl = token.role === "admin" ? "/admin" : "/dashboard";
-        console.log(
-          "✅ Authenticated user on auth page, redirecting to:",
-          redirectUrl
-        );
-        return NextResponse.redirect(new URL(redirectUrl, req.url));
-      }
-      console.log("👤 Unauthenticated user on auth page, allowing access");
+      console.log("👤 Allowing access to auth page");
       return NextResponse.next();
     }
 
-    // Redirect authenticated users from root to appropriate dashboard
-    if (pathname === "/" && token) {
-      const redirectUrl = token.role === "admin" ? "/admin" : "/dashboard";
-      console.log("🏠 Root access with token, redirecting to:", redirectUrl);
-      return NextResponse.redirect(new URL(redirectUrl, req.url));
+    // Allow access to root page for all users
+    if (pathname === "/") {
+      console.log("🏠 Root page accessed, allowing access");
+      return NextResponse.next();
+    }
+
+    // API route protection - reject instead of redirect
+    if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
+      console.log("🔌 API route accessed:", pathname);
+      if (!token) {
+        console.log("🚫 Rejecting unauthenticated API request with 401");
+        return new NextResponse("Unauthorized", { status: 401 });
+      }
     }
 
     // Admin route protection
     if (pathname.startsWith("/admin")) {
       console.log("🔐 Admin route accessed:", pathname);
       if (!token) {
-        console.log("❌ No token found, redirecting to signin");
+        console.log("❌ No token found for admin route");
+
+        // For API requests or prefetch, return 401 instead of redirecting
+        if (
+          pathname.startsWith("/admin/api") ||
+          req.headers.get("purpose") === "prefetch"
+        ) {
+          console.log("🚫 Rejecting API/prefetch request with 401");
+          return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        // For navigation requests, redirect to signin
+        console.log("🔄 Redirecting navigation request to signin");
         return NextResponse.redirect(new URL("/signin", req.url));
       }
       if (token.role !== "admin") {
-        console.log(
-          "⚠️ Non-admin user accessing admin route, redirecting to dashboard"
-        );
+        console.log("⚠️ Non-admin user accessing admin route");
+
+        // For API requests or prefetch, return 403 instead of redirecting
+        if (
+          pathname.startsWith("/admin/api") ||
+          req.headers.get("purpose") === "prefetch"
+        ) {
+          console.log("🚫 Rejecting API/prefetch request with 403");
+          return new NextResponse("Forbidden", { status: 403 });
+        }
+
+        // For navigation requests, redirect to dashboard
+        console.log("🔄 Redirecting navigation request to dashboard");
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
       console.log("✅ Admin access granted for:", pathname);
@@ -63,16 +97,22 @@ export default withAuth(
     ) {
       console.log("🎓 Student route accessed:", pathname);
       if (!token) {
-        console.log(
-          "❌ No token found for student route, redirecting to signin"
-        );
+        console.log("❌ No token found for student route");
+
+        // For API requests or prefetch, return 401 instead of redirecting
+        if (
+          pathname.includes("/api/") ||
+          req.headers.get("purpose") === "prefetch"
+        ) {
+          console.log("🚫 Rejecting API/prefetch request with 401");
+          return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        // For navigation requests, redirect to signin
+        console.log("🔄 Redirecting navigation request to signin");
         return NextResponse.redirect(new URL("/signin", req.url));
       }
       // Admin users can access student routes
-      if (token.role === "admin" && pathname.startsWith("/dashboard")) {
-        console.log("👑 Admin accessing dashboard, redirecting to admin panel");
-        return NextResponse.redirect(new URL("/admin", req.url));
-      }
       console.log("✅ Student route access granted for:", pathname);
     }
 
@@ -88,6 +128,8 @@ export default withAuth(
           pathname,
           hasToken: !!token,
           tokenRole: token?.role,
+          method: req.method,
+          purpose: req.headers.get("purpose") || "navigation",
           timestamp: new Date().toISOString(),
         });
 

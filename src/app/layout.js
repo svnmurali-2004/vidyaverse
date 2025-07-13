@@ -3,8 +3,6 @@ import "./globals.css";
 import "../styles/prose.css";
 import AuthProvider from "@/components/providers/auth-provider";
 import ToastProvider from "@/components/providers/toast-provider";
-import PWAInstall from "@/components/PWAInstall";
-import PWADebug from "@/components/PWADebug";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 const geistSans = Geist({
@@ -76,8 +74,6 @@ export default function RootLayout({ children }) {
           <ServiceWorkerRegistration />
           {children}
           <ToastProvider />
-          <PWAInstall />
-          <PWADebug />
         </AuthProvider>
       </body>
     </html>
