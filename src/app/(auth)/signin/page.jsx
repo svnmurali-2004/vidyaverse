@@ -61,9 +61,8 @@ export function LoginForm({ className, ...props }) {
       await signIn(provider, {
         callbackUrl: "/auth/redirect",
       });
-      
+
       // Note: The page will redirect, so we don't need to handle anything else here
-      
     } catch (err) {
       console.error(`OAuth sign in error:`, err);
       toast.error(`Failed to sign in with ${provider}`);

@@ -130,21 +130,24 @@ export default function CheckoutPage({ params }) {
       });
 
       const responseText = await orderResponse.text();
-      
+
       if (!orderResponse.ok) {
         console.error("Order creation failed:", {
           status: orderResponse.status,
           statusText: orderResponse.statusText,
-          response: responseText
+          response: responseText,
         });
-        
+
         let errorMessage = "Failed to create order";
         try {
           const errorData = JSON.parse(responseText);
           errorMessage = errorData.error || errorMessage;
         } catch (e) {
           // Response is not JSON, might be HTML error page
-          if (responseText.includes("<!DOCTYPE") || responseText.includes("<html")) {
+          if (
+            responseText.includes("<!DOCTYPE") ||
+            responseText.includes("<html")
+          ) {
             errorMessage = "Server error occurred. Please try again.";
           } else {
             errorMessage = responseText || errorMessage;
@@ -167,7 +170,9 @@ export default function CheckoutPage({ params }) {
         script.src = "https://checkout.razorpay.com/v1/checkout.js";
         script.onload = () => {
           const options = {
-            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_6etUlx1588eZwL",
+            key:
+              process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
+              "rzp_test_6etUlx1588eZwL",
             amount: orderData.amount, // Already in paise from API
             currency: orderData.currency,
             name: "VidyaVerse",
@@ -195,21 +200,24 @@ export default function CheckoutPage({ params }) {
                 });
 
                 const verifyText = await verifyResponse.text();
-                
+
                 if (verifyResponse.ok) {
                   let verifyData;
                   try {
                     verifyData = JSON.parse(verifyText);
                   } catch (e) {
-                    console.error("Failed to parse verify response:", verifyText);
+                    console.error(
+                      "Failed to parse verify response:",
+                      verifyText
+                    );
                   }
-                  
+
                   toast.success("Payment successful! You are now enrolled.");
                   router.push(`/courses/${courseId}/success`);
                 } else {
                   console.error("Payment verification failed:", {
                     status: verifyResponse.status,
-                    response: verifyText
+                    response: verifyText,
                   });
                   toast.error("Payment verification failed");
                 }

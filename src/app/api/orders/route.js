@@ -35,10 +35,7 @@ export async function POST(request) {
     // Verify course exists
     const course = await Course.findById(courseId);
     if (!course) {
-      return NextResponse.json(
-        { error: "Course not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
     // Check if already enrolled
@@ -88,7 +85,6 @@ export async function POST(request) {
         currency: "INR",
       },
     });
-
   } catch (error) {
     console.error("Error creating order:", error);
     return NextResponse.json(
@@ -115,7 +111,6 @@ export async function GET(request) {
       success: true,
       data: orders,
     });
-
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json(

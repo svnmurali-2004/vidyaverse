@@ -170,7 +170,10 @@ export async function POST(request) {
       passingScore: passingScore || 70,
       attempts: attempts || 3,
       isActive: isActive !== undefined ? isActive : true,
-      isRequiredForCertificate: isRequiredForCertificate !== undefined ? isRequiredForCertificate : false,
+      isRequiredForCertificate:
+        isRequiredForCertificate !== undefined
+          ? isRequiredForCertificate
+          : false,
       createdBy: session.user.id,
     });
 

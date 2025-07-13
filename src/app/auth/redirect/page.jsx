@@ -15,11 +15,12 @@ export default function AuthRedirect() {
 
     if (session?.user) {
       // Check if this is coming from OAuth (like Google sign-in)
-      const isOAuth = searchParams.get('callbackUrl') || 
-                     (typeof window !== 'undefined' && 
-                      (window.location.href.includes('google') || 
-                       window.location.href.includes('github')));
-      
+      const isOAuth =
+        searchParams.get("callbackUrl") ||
+        (typeof window !== "undefined" &&
+          (window.location.href.includes("google") ||
+            window.location.href.includes("github")));
+
       if (isOAuth) {
         toast.success("🎉 Signed in successfully with Google!");
       }

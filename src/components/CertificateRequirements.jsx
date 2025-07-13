@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  CheckCircle, 
-  XCircle, 
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  CheckCircle,
+  XCircle,
   Award,
   BookOpen,
   Target,
-  AlertTriangle 
-} from 'lucide-react';
+  AlertTriangle,
+} from "lucide-react";
 
 export default function CertificateRequirements({ courseId }) {
   const [requirements, setRequirements] = useState(null);
@@ -26,13 +26,15 @@ export default function CertificateRequirements({ courseId }) {
 
   const fetchRequirements = async () => {
     try {
-      const response = await fetch(`/api/courses/${courseId}/certificate-requirements`);
+      const response = await fetch(
+        `/api/courses/${courseId}/certificate-requirements`
+      );
       if (response.ok) {
         const data = await response.json();
         setRequirements(data.data);
       }
     } catch (error) {
-      console.error('Error fetching certificate requirements:', error);
+      console.error("Error fetching certificate requirements:", error);
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,13 @@ export default function CertificateRequirements({ courseId }) {
   const { lessons, quizzes, certificateEligible } = requirements;
 
   return (
-    <Card className={`border-2 ${certificateEligible ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
+    <Card
+      className={`border-2 ${
+        certificateEligible
+          ? "border-green-200 bg-green-50"
+          : "border-amber-200 bg-amber-50"
+      }`}
+    >
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center">
@@ -78,14 +86,17 @@ export default function CertificateRequirements({ courseId }) {
               Eligible
             </Badge>
           ) : (
-            <Badge variant="outline" className="border-amber-500 text-amber-700">
+            <Badge
+              variant="outline"
+              className="border-amber-500 text-amber-700"
+            >
               <AlertTriangle className="h-3 w-3 mr-1" />
               Requirements Pending
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Lesson Requirements */}
         <div className="space-y-2">
@@ -100,13 +111,10 @@ export default function CertificateRequirements({ courseId }) {
               <XCircle className="h-4 w-4 text-red-500" />
             )}
           </div>
-          <Progress 
-            value={lessons.percentage} 
-            className="h-2"
-          />
+          <Progress value={lessons.percentage} className="h-2" />
           <p className="text-sm text-gray-600">
-            {lessons.completed}/{lessons.total} lessons completed 
-            ({lessons.percentage.toFixed(1)}% - Required: {lessons.required}%)
+            {lessons.completed}/{lessons.total} lessons completed (
+            {lessons.percentage.toFixed(1)}% - Required: {lessons.required}%)
           </p>
         </div>
 
@@ -124,22 +132,22 @@ export default function CertificateRequirements({ courseId }) {
                 <XCircle className="h-4 w-4 text-red-500" />
               )}
             </div>
-            
+
             <p className="text-sm text-gray-600">
               {quizzes.passed}/{quizzes.total} required quizzes passed
             </p>
 
             <div className="space-y-2">
               {quizzes.requirements.map((req) => (
-                <div 
-                  key={req.quiz._id} 
+                <div
+                  key={req.quiz._id}
                   className="flex items-center justify-between p-2 bg-white rounded border"
                 >
                   <div>
                     <p className="font-medium text-sm">{req.quiz.title}</p>
                     <p className="text-xs text-gray-500">
-                      Passing Score: {req.quiz.passingScore}% | 
-                      Attempts: {req.attemptsUsed}/{req.quiz.attempts}
+                      Passing Score: {req.quiz.passingScore}% | Attempts:{" "}
+                      {req.attemptsUsed}/{req.quiz.attempts}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -152,9 +160,7 @@ export default function CertificateRequirements({ courseId }) {
                         Failed ({req.lastAttempt?.percentage || 0}%)
                       </Badge>
                     ) : (
-                      <Badge variant="outline">
-                        Not Attempted
-                      </Badge>
+                      <Badge variant="outline">Not Attempted</Badge>
                     )}
                   </div>
                 </div>
@@ -164,11 +170,13 @@ export default function CertificateRequirements({ courseId }) {
         )}
 
         {/* Certificate Status */}
-        <div className={`p-3 rounded border-2 ${
-          certificateEligible 
-            ? 'border-green-200 bg-green-50' 
-            : 'border-amber-200 bg-amber-50'
-        }`}>
+        <div
+          className={`p-3 rounded border-2 ${
+            certificateEligible
+              ? "border-green-200 bg-green-50"
+              : "border-amber-200 bg-amber-50"
+          }`}
+        >
           {certificateEligible ? (
             <div className="flex items-center">
               <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
@@ -177,7 +185,8 @@ export default function CertificateRequirements({ courseId }) {
                   You're eligible for a certificate!
                 </p>
                 <p className="text-sm text-green-600">
-                  Complete the course to automatically generate your certificate.
+                  Complete the course to automatically generate your
+                  certificate.
                 </p>
               </div>
             </div>

@@ -29,4 +29,5 @@ enrollmentSchema.index({ user: 1 });
 enrollmentSchema.index({ course: 1 });
 enrollmentSchema.index({ status: 1 });
 
-export default mongoose.models.Enrollment || mongoose.model("Enrollment", enrollmentSchema);
+export default mongoose.models.Enrollment ||
+  mongoose.model("Enrollment", enrollmentSchema);

@@ -106,13 +106,13 @@ export const authOptions = {
     },
     async redirect({ url, baseUrl }) {
       console.log("Redirect callback - URL:", url, "BaseURL:", baseUrl);
-      
+
       // If it's a relative URL, it's safe to redirect
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      
+
       // If it's the same origin, allow it
       if (new URL(url).origin === baseUrl) return url;
-      
+
       // For OAuth callbacks, redirect to our custom redirect handler
       return `${baseUrl}/auth/redirect`;
     },

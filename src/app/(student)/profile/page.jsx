@@ -167,23 +167,27 @@ export default function ProfilePage() {
   const calculateProgress = (enrollment) => {
     // Debug log to understand the data structure
     console.log("Calculating progress for enrollment:", enrollment);
-    
+
     // Try multiple approaches to get progress
     if (enrollment.progressPercentage !== undefined) {
       return Math.round(enrollment.progressPercentage);
     }
-    
+
     // Calculate from completed vs total lessons if available
-    if (enrollment.completedLessons !== undefined && enrollment.totalLessons > 0) {
-      const percentage = (enrollment.completedLessons / enrollment.totalLessons) * 100;
+    if (
+      enrollment.completedLessons !== undefined &&
+      enrollment.totalLessons > 0
+    ) {
+      const percentage =
+        (enrollment.completedLessons / enrollment.totalLessons) * 100;
       return Math.round(percentage);
     }
-    
+
     // Fallback to enrollment progress field
     if (enrollment.progress !== undefined) {
       return Math.round(enrollment.progress);
     }
-    
+
     // Default to 0
     return 0;
   };
@@ -462,7 +466,8 @@ export default function ProfilePage() {
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-2">
-                            {enrollment.course?.title || 'Course Title Not Available'}
+                            {enrollment.course?.title ||
+                              "Course Title Not Available"}
                           </h3>
                           <div className="flex items-center gap-4 text-sm text-gray-500">
                             <span className="flex items-center gap-1">
@@ -502,13 +507,14 @@ export default function ProfilePage() {
                           <span className="font-medium">Progress</span>
                           <span>{calculateProgress(enrollment)}%</span>
                         </div>
-                        <Progress 
-                          value={calculateProgress(enrollment)} 
+                        <Progress
+                          value={calculateProgress(enrollment)}
                           className="w-full h-2"
                         />
 
                         <div className="text-sm text-gray-600">
-                          {enrollment.completedLessons !== undefined && enrollment.totalLessons !== undefined ? (
+                          {enrollment.completedLessons !== undefined &&
+                          enrollment.totalLessons !== undefined ? (
                             <>
                               {enrollment.completedLessons} of{" "}
                               {enrollment.totalLessons} lessons completed
@@ -523,7 +529,9 @@ export default function ProfilePage() {
 
                       <div className="flex space-x-3 mt-6">
                         <Button size="sm" asChild>
-                          <Link href={`/courses/${enrollment.course?._id}/learn`}>
+                          <Link
+                            href={`/courses/${enrollment.course?._id}/learn`}
+                          >
                             {calculateProgress(enrollment) >= 100
                               ? "Review Course"
                               : "Continue Learning"}
@@ -536,7 +544,9 @@ export default function ProfilePage() {
                         </Button>
                         {calculateProgress(enrollment) >= 100 && (
                           <Button size="sm" variant="outline" asChild>
-                            <Link href={`/certificates?courseId=${enrollment.course?._id}`}>
+                            <Link
+                              href={`/certificates?courseId=${enrollment.course?._id}`}
+                            >
                               View Certificate
                             </Link>
                           </Button>
@@ -662,10 +672,18 @@ export default function ProfilePage() {
                   <BookOpen className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-purple-600 mb-1">
                     {(() => {
-                      const totalLessons = enrollments.reduce((total, enrollment) => {
-                        console.log("Enrollment for total lessons:", enrollment.course?.title, "totalLessons:", enrollment.totalLessons);
-                        return total + (enrollment.totalLessons || 0);
-                      }, 0);
+                      const totalLessons = enrollments.reduce(
+                        (total, enrollment) => {
+                          console.log(
+                            "Enrollment for total lessons:",
+                            enrollment.course?.title,
+                            "totalLessons:",
+                            enrollment.totalLessons
+                          );
+                          return total + (enrollment.totalLessons || 0);
+                        },
+                        0
+                      );
                       console.log("Final total lessons:", totalLessons);
                       return totalLessons;
                     })()}
@@ -678,7 +696,10 @@ export default function ProfilePage() {
                 <div className="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <Trophy className="h-8 w-8 text-green-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-green-600 mb-1">
-                    {enrollments.filter((e) => calculateProgress(e) >= 100).length}
+                    {
+                      enrollments.filter((e) => calculateProgress(e) >= 100)
+                        .length
+                    }
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     Courses Completed

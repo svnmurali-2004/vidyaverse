@@ -160,7 +160,10 @@ export async function PUT(request, { params }) {
         passingScore: passingScore || 70,
         attempts: attempts || 3,
         isActive: isActive !== undefined ? isActive : true,
-        isRequiredForCertificate: isRequiredForCertificate !== undefined ? isRequiredForCertificate : false,
+        isRequiredForCertificate:
+          isRequiredForCertificate !== undefined
+            ? isRequiredForCertificate
+            : false,
         updatedAt: new Date(),
       },
       { new: true }

@@ -33,11 +33,13 @@ export default withAuth(
     }
 
     // Student route protection
-    if (pathname.startsWith("/dashboard") || 
-        pathname.startsWith("/courses") || 
-        pathname.startsWith("/profile") ||
-        pathname.startsWith("/certificates") ||
-        pathname.startsWith("/quizzes")) {
+    if (
+      pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/courses") ||
+      pathname.startsWith("/profile") ||
+      pathname.startsWith("/certificates") ||
+      pathname.startsWith("/quizzes")
+    ) {
       if (!token) {
         return NextResponse.redirect(new URL("/signin", req.url));
       }
@@ -53,7 +55,7 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
-        
+
         // Public routes that don't require authentication
         const publicRoutes = [
           "/",
@@ -67,10 +69,12 @@ export default withAuth(
         ];
 
         // Check if it's a public route or API route
-        if (publicRoutes.some(route => pathname.startsWith(route)) ||
-            pathname.startsWith("/api/auth") ||
-            pathname.startsWith("/_next") ||
-            pathname.includes(".")) {
+        if (
+          publicRoutes.some((route) => pathname.startsWith(route)) ||
+          pathname.startsWith("/api/auth") ||
+          pathname.startsWith("/_next") ||
+          pathname.includes(".")
+        ) {
           return true;
         }
 

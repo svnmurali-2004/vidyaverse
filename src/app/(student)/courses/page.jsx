@@ -1,18 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Search, 
-  Star, 
-  Users, 
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  Star,
+  Users,
   User,
   Clock,
   BookOpen,
@@ -21,19 +33,19 @@ import {
   Heart,
   Award,
   ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+  ChevronRight,
+} from "lucide-react";
 
 export default function CoursesPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [levelFilter, setLevelFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [priceFilter, setPriceFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [levelFilter, setLevelFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [priceFilter, setPriceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [featuredCourses, setFeaturedCourses] = useState([]);
@@ -45,7 +57,15 @@ export default function CoursesPage() {
     if (session) {
       fetchWishlist();
     }
-  }, [searchTerm, categoryFilter, levelFilter, sortBy, priceFilter, currentPage, session]);
+  }, [
+    searchTerm,
+    categoryFilter,
+    levelFilter,
+    sortBy,
+    priceFilter,
+    currentPage,
+    session,
+  ]);
 
   // Refetch data when user returns to the page (after payment, etc.)
   useEffect(() => {
@@ -59,26 +79,26 @@ export default function CoursesPage() {
       }, 1000);
     };
 
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, [session]);
 
   const fetchCourses = async () => {
     try {
       const params = new URLSearchParams({
         search: searchTerm,
-        category: categoryFilter !== 'all' ? categoryFilter : '',
-        level: levelFilter !== 'all' ? levelFilter : '',
+        category: categoryFilter !== "all" ? categoryFilter : "",
+        level: levelFilter !== "all" ? levelFilter : "",
         sortBy,
-        published: 'true',
+        published: "true",
         page: currentPage.toString(),
-        limit: '12'
+        limit: "12",
       });
 
-      if (priceFilter === 'free') {
-        params.append('price', '0');
-      } else if (priceFilter === 'paid') {
-        params.append('minPrice', '1');
+      if (priceFilter === "free") {
+        params.append("price", "0");
+      } else if (priceFilter === "paid") {
+        params.append("minPrice", "1");
       }
 
       const response = await fetch(`/api/courses?${params}`);
@@ -88,7 +108,7 @@ export default function CoursesPage() {
         setTotalPages(data.pagination?.totalPages || 1);
       }
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      console.error("Error fetching courses:", error);
     } finally {
       setLoading(false);
     }
@@ -96,92 +116,101 @@ export default function CoursesPage() {
 
   const fetchFeaturedCourses = async () => {
     try {
-      const response = await fetch('/api/courses?featured=true&limit=6');
+      const response = await fetch("/api/courses?featured=true&limit=6");
       if (response.ok) {
         const data = await response.json();
         setFeaturedCourses(data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching featured courses:', error);
+      console.error("Error fetching featured courses:", error);
     }
   };
 
   const fetchWishlist = async () => {
     try {
-      const response = await fetch('/api/users/wishlist');
+      const response = await fetch("/api/users/wishlist");
       if (response.ok) {
         const data = await response.json();
         setWishlist(data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching wishlist:', error);
+      console.error("Error fetching wishlist:", error);
     }
   };
 
   const toggleWishlist = async (courseId) => {
     if (!session) {
-      router.push('/auth/signin');
+      router.push("/auth/signin");
       return;
     }
 
     try {
       const isInWishlist = wishlist.includes(courseId);
-      const response = await fetch('/api/users/wishlist', {
-        method: isInWishlist ? 'DELETE' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId })
+      const response = await fetch("/api/users/wishlist", {
+        method: isInWishlist ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId }),
       });
 
       if (response.ok) {
-        setWishlist(prev => 
-          isInWishlist 
-            ? prev.filter(id => id !== courseId)
+        setWishlist((prev) =>
+          isInWishlist
+            ? prev.filter((id) => id !== courseId)
             : [...prev, courseId]
         );
       }
     } catch (error) {
-      console.error('Error updating wishlist:', error);
+      console.error("Error updating wishlist:", error);
     }
   };
 
   const enrollInCourse = async (courseId, isFree) => {
     if (!session) {
       // Redirect to login
-      router.push('/auth/signin');
+      router.push("/auth/signin");
       return;
     }
 
     try {
       if (isFree) {
         // Free enrollment
-        const response = await fetch('/api/enrollments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ courseId })
+        const response = await fetch("/api/enrollments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ courseId }),
         });
 
         if (response.ok) {
           router.push(`/courses/${courseId}/learn`);
         } else {
           const error = await response.json();
-          alert(error.error || 'Failed to enroll');
+          alert(error.error || "Failed to enroll");
         }
       } else {
         // Paid enrollment - redirect to payment
         router.push(`/courses/${courseId}/checkout`);
       }
     } catch (error) {
-      console.error('Error enrolling in course:', error);
-      alert('Failed to enroll in course');
+      console.error("Error enrolling in course:", error);
+      alert("Failed to enroll in course");
     }
   };
 
   const categories = [
-    'all', 'Web Development', 'Mobile Development', 'Data Science', 
-    'Machine Learning', 'Cloud Computing', 'DevOps', 'Cybersecurity',
-    'UI/UX Design', 'Digital Marketing', 'Business', 'Photography'
+    "all",
+    "Web Development",
+    "Mobile Development",
+    "Data Science",
+    "Machine Learning",
+    "Cloud Computing",
+    "DevOps",
+    "Cybersecurity",
+    "UI/UX Design",
+    "Digital Marketing",
+    "Business",
+    "Photography",
   ];
-  const levels = ['all', 'beginner', 'intermediate', 'advanced'];
+  const levels = ["all", "beginner", "intermediate", "advanced"];
 
   if (loading) {
     return (
@@ -201,7 +230,8 @@ export default function CoursesPage() {
           Explore Our Courses
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Discover new skills, advance your career, and unlock your potential with our comprehensive course library
+          Discover new skills, advance your career, and unlock your potential
+          with our comprehensive course library
         </p>
       </div>
 
@@ -210,11 +240,16 @@ export default function CoursesPage() {
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <Award className="h-6 w-6 text-yellow-500" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Featured Courses</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Featured Courses
+            </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredCourses.slice(0, 3).map((course) => (
-              <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow border-yellow-200 dark:border-yellow-800">
+              <Card
+                key={course._id}
+                className="overflow-hidden hover:shadow-lg transition-shadow border-yellow-200 dark:border-yellow-800"
+              >
                 <div className="relative">
                   {course.thumbnail ? (
                     <img
@@ -237,13 +272,19 @@ export default function CoursesPage() {
                     className="absolute top-2 right-2 bg-white/80 hover:bg-white"
                     onClick={() => toggleWishlist(course._id)}
                   >
-                    <Heart 
-                      className={`h-4 w-4 ${wishlist.includes(course._id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                    <Heart
+                      className={`h-4 w-4 ${
+                        wishlist.includes(course._id)
+                          ? "fill-red-500 text-red-500"
+                          : "text-gray-600"
+                      }`}
                     />
                   </Button>
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
+                  <CardTitle className="text-lg line-clamp-2">
+                    {course.title}
+                  </CardTitle>
                   <CardDescription className="line-clamp-2">
                     {course.shortDescription || course.description}
                   </CardDescription>
@@ -257,12 +298,12 @@ export default function CoursesPage() {
                       </div>
                       <div className="flex items-center text-gray-500">
                         <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                        {course.avgRating?.toFixed(1) || 'New'}
+                        {course.avgRating?.toFixed(1) || "New"}
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-2xl font-bold text-green-600">
-                        {course.price === 0 ? 'Free' : `₹${course.price}`}
+                        {course.price === 0 ? "Free" : `₹${course.price}`}
                       </div>
                       <div className="space-x-2">
                         <Button variant="outline" size="sm" asChild>
@@ -271,7 +312,7 @@ export default function CoursesPage() {
                             View
                           </Link>
                         </Button>
-                        
+
                         {course.isEnrolled ? (
                           <Button size="sm" asChild>
                             <Link href={`/courses/${course._id}/learn`}>
@@ -280,11 +321,13 @@ export default function CoursesPage() {
                             </Link>
                           </Button>
                         ) : (
-                          <Button 
+                          <Button
                             size="sm"
-                            onClick={() => enrollInCourse(course._id, course.price === 0)}
+                            onClick={() =>
+                              enrollInCourse(course._id, course.price === 0)
+                            }
                           >
-                            {course.price === 0 ? 'Start Free' : 'Enroll Now'}
+                            {course.price === 0 ? "Start Free" : "Enroll Now"}
                           </Button>
                         )}
                       </div>
@@ -310,16 +353,16 @@ export default function CoursesPage() {
               className="pl-10"
             />
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map(category => (
+                {categories.map((category) => (
                   <SelectItem key={category} value={category}>
-                    {category === 'all' ? 'All Categories' : category}
+                    {category === "all" ? "All Categories" : category}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -330,9 +373,11 @@ export default function CoursesPage() {
                 <SelectValue placeholder="Level" />
               </SelectTrigger>
               <SelectContent>
-                {levels.map(level => (
+                {levels.map((level) => (
                   <SelectItem key={level} value={level}>
-                    {level === 'all' ? 'All Levels' : level.charAt(0).toUpperCase() + level.slice(1)}
+                    {level === "all"
+                      ? "All Levels"
+                      : level.charAt(0).toUpperCase() + level.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -369,25 +414,45 @@ export default function CoursesPage() {
           {searchTerm && (
             <Badge variant="secondary" className="gap-1">
               Search: {searchTerm}
-              <button onClick={() => setSearchTerm('')} className="ml-1 hover:text-red-500">×</button>
+              <button
+                onClick={() => setSearchTerm("")}
+                className="ml-1 hover:text-red-500"
+              >
+                ×
+              </button>
             </Badge>
           )}
-          {categoryFilter !== 'all' && (
+          {categoryFilter !== "all" && (
             <Badge variant="secondary" className="gap-1">
               Category: {categoryFilter}
-              <button onClick={() => setCategoryFilter('all')} className="ml-1 hover:text-red-500">×</button>
+              <button
+                onClick={() => setCategoryFilter("all")}
+                className="ml-1 hover:text-red-500"
+              >
+                ×
+              </button>
             </Badge>
           )}
-          {levelFilter !== 'all' && (
+          {levelFilter !== "all" && (
             <Badge variant="secondary" className="gap-1">
               Level: {levelFilter}
-              <button onClick={() => setLevelFilter('all')} className="ml-1 hover:text-red-500">×</button>
+              <button
+                onClick={() => setLevelFilter("all")}
+                className="ml-1 hover:text-red-500"
+              >
+                ×
+              </button>
             </Badge>
           )}
-          {priceFilter !== 'all' && (
+          {priceFilter !== "all" && (
             <Badge variant="secondary" className="gap-1">
               Price: {priceFilter}
-              <button onClick={() => setPriceFilter('all')} className="ml-1 hover:text-red-500">×</button>
+              <button
+                onClick={() => setPriceFilter("all")}
+                className="ml-1 hover:text-red-500"
+              >
+                ×
+              </button>
             </Badge>
           )}
         </div>
@@ -396,7 +461,10 @@ export default function CoursesPage() {
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {courses.map((course) => (
-          <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <Card
+            key={course._id}
+            className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+          >
             <div className="relative">
               {course.thumbnail ? (
                 <img
@@ -409,7 +477,7 @@ export default function CoursesPage() {
                   <BookOpen className="h-12 w-12 text-blue-600 dark:text-blue-400" />
                 </div>
               )}
-              
+
               {course.isFeatured && (
                 <Badge className="absolute top-2 left-2 bg-yellow-500 text-black">
                   <Award className="h-3 w-3 mr-1" />
@@ -417,9 +485,15 @@ export default function CoursesPage() {
                 </Badge>
               )}
 
-              <Badge 
-                className="absolute top-2 right-10" 
-                variant={course.level === 'beginner' ? 'secondary' : course.level === 'advanced' ? 'destructive' : 'default'}
+              <Badge
+                className="absolute top-2 right-10"
+                variant={
+                  course.level === "beginner"
+                    ? "secondary"
+                    : course.level === "advanced"
+                    ? "destructive"
+                    : "default"
+                }
               >
                 {course.level}
               </Badge>
@@ -430,17 +504,19 @@ export default function CoursesPage() {
                 className="absolute top-2 right-2 bg-white/80 hover:bg-white"
                 onClick={() => toggleWishlist(course._id)}
               >
-                <Heart 
-                  className={`h-4 w-4 ${wishlist.includes(course._id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                <Heart
+                  className={`h-4 w-4 ${
+                    wishlist.includes(course._id)
+                      ? "fill-red-500 text-red-500"
+                      : "text-gray-600"
+                  }`}
                 />
               </Button>
             </div>
 
             <CardHeader className="pb-3">
               <CardTitle className="text-lg line-clamp-2 hover:text-blue-600 transition-colors">
-                <Link href={`/courses/${course._id}`}>
-                  {course.title}
-                </Link>
+                <Link href={`/courses/${course._id}`}>{course.title}</Link>
               </CardTitle>
               <CardDescription className="line-clamp-2">
                 {course.shortDescription || course.description}
@@ -452,7 +528,7 @@ export default function CoursesPage() {
                 {/* Instructor */}
                 <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                   <User className="h-4 w-4 mr-2" />
-                  {course.instructor?.name || 'Instructor'}
+                  {course.instructor?.name || "Instructor"}
                 </div>
 
                 {/* Stats */}
@@ -463,7 +539,10 @@ export default function CoursesPage() {
                   </div>
                   <div className="flex items-center">
                     <Clock className="h-4 w-4 mr-1" />
-                    {course.actualLessonCount || course.lessons?.length || 0} lessons
+                    {course.actualLessonCount ||
+                      course.lessons?.length ||
+                      0}{" "}
+                    lessons
                   </div>
                 </div>
 
@@ -472,14 +551,19 @@ export default function CoursesPage() {
                   <div className="flex items-center text-sm">
                     <div className="flex items-center mr-2">
                       {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`h-4 w-4 ${i < Math.floor(course.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} 
+                        <Star
+                          key={i}
+                          className={`h-4 w-4 ${
+                            i < Math.floor(course.avgRating)
+                              ? "text-yellow-500 fill-yellow-500"
+                              : "text-gray-300"
+                          }`}
                         />
                       ))}
                     </div>
                     <span className="text-gray-600 dark:text-gray-400">
-                      {course.avgRating.toFixed(1)} ({course.reviewCount || 0} reviews)
+                      {course.avgRating.toFixed(1)} ({course.reviewCount || 0}{" "}
+                      reviews)
                     </span>
                   </div>
                 )}
@@ -493,7 +577,7 @@ export default function CoursesPage() {
                       <span className="text-blue-600">₹{course.price}</span>
                     )}
                   </div>
-                  
+
                   <div className="space-x-2">
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/courses/${course._id}`}>
@@ -501,7 +585,7 @@ export default function CoursesPage() {
                         View
                       </Link>
                     </Button>
-                    
+
                     {course.isEnrolled ? (
                       <Button size="sm" asChild>
                         <Link href={`/courses/${course._id}/learn`}>
@@ -510,12 +594,18 @@ export default function CoursesPage() {
                         </Link>
                       </Button>
                     ) : (
-                      <Button 
+                      <Button
                         size="sm"
-                        onClick={() => enrollInCourse(course._id, course.price === 0)}
-                        className={course.price === 0 ? 'bg-green-600 hover:bg-green-700' : ''}
+                        onClick={() =>
+                          enrollInCourse(course._id, course.price === 0)
+                        }
+                        className={
+                          course.price === 0
+                            ? "bg-green-600 hover:bg-green-700"
+                            : ""
+                        }
                       >
-                        {course.price === 0 ? 'Start Free' : 'Enroll Now'}
+                        {course.price === 0 ? "Start Free" : "Enroll Now"}
                       </Button>
                     )}
                   </div>
@@ -523,7 +613,7 @@ export default function CoursesPage() {
 
                 {/* Quick Preview */}
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Category: {course.category || 'General'}
+                  Category: {course.category || "General"}
                 </div>
               </div>
             </CardContent>
@@ -537,18 +627,18 @@ export default function CoursesPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Previous
           </Button>
-          
+
           <div className="flex items-center space-x-1">
             {[...Array(Math.min(5, totalPages))].map((_, i) => {
               const page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
               if (page > totalPages) return null;
-              
+
               return (
                 <Button
                   key={page}
@@ -561,11 +651,13 @@ export default function CoursesPage() {
               );
             })}
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
           >
             Next
@@ -578,16 +670,20 @@ export default function CoursesPage() {
       {courses.length === 0 && (
         <div className="text-center py-16">
           <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No courses found</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            No courses found
+          </h3>
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
             Try adjusting your search criteria or browse our featured courses
           </p>
-          <Button onClick={() => {
-            setSearchTerm('');
-            setCategoryFilter('all');
-            setLevelFilter('all');
-            setPriceFilter('all');
-          }}>
+          <Button
+            onClick={() => {
+              setSearchTerm("");
+              setCategoryFilter("all");
+              setLevelFilter("all");
+              setPriceFilter("all");
+            }}
+          >
             Clear Filters
           </Button>
         </div>

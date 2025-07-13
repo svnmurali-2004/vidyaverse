@@ -38,22 +38,25 @@ export async function GET(request, { params }) {
     const lessons = await Lesson.find({ course: courseId });
     const completedProgress = await Progress.find({
       user: userId,
-      lesson: { $in: lessons.map(l => l._id) },
-      completed: true
+      lesson: { $in: lessons.map((l) => l._id) },
+      completed: true,
     });
 
     const lessonCompletion = {
       total: lessons.length,
       completed: completedProgress.length,
-      percentage: lessons.length > 0 ? (completedProgress.length / lessons.length) * 100 : 0,
-      required: 80
+      percentage:
+        lessons.length > 0
+          ? (completedProgress.length / lessons.length) * 100
+          : 0,
+      required: 80,
     };
 
     // Get required quizzes and user attempts
-    const requiredQuizzes = await Quiz.find({ 
-      course: courseId, 
+    const requiredQuizzes = await Quiz.find({
+      course: courseId,
       isActive: true,
-      isRequiredForCertificate: true 
+      isRequiredForCertificate: true,
     });
 
     const quizRequirements = await Promise.all(
@@ -61,12 +64,12 @@ export async function GET(request, { params }) {
         const bestAttempt = await QuizAttempt.findOne({
           quiz: quiz._id,
           user: userId,
-          passed: true
+          passed: true,
         }).sort({ percentage: -1 });
 
         const allAttempts = await QuizAttempt.find({
           quiz: quiz._id,
-          user: userId
+          user: userId,
         }).sort({ attemptNumber: -1 });
 
         return {
@@ -74,26 +77,29 @@ export async function GET(request, { params }) {
             _id: quiz._id,
             title: quiz.title,
             passingScore: quiz.passingScore,
-            attempts: quiz.attempts
+            attempts: quiz.attempts,
           },
           passed: !!bestAttempt,
           bestScore: bestAttempt?.percentage || 0,
           attemptsUsed: allAttempts.length,
           attemptsRemaining: Math.max(0, quiz.attempts - allAttempts.length),
-          lastAttempt: allAttempts[0] || null
+          lastAttempt: allAttempts[0] || null,
         };
       })
     );
 
     const quizCompletion = {
       total: requiredQuizzes.length,
-      passed: quizRequirements.filter(q => q.passed).length,
-      requirements: quizRequirements
+      passed: quizRequirements.filter((q) => q.passed).length,
+      requirements: quizRequirements,
     };
 
     // Calculate eligibility
-    const lessonRequirementMet = lessonCompletion.percentage >= lessonCompletion.required;
-    const quizRequirementMet = quizCompletion.total === 0 || quizCompletion.passed === quizCompletion.total;
+    const lessonRequirementMet =
+      lessonCompletion.percentage >= lessonCompletion.required;
+    const quizRequirementMet =
+      quizCompletion.total === 0 ||
+      quizCompletion.passed === quizCompletion.total;
     const certificateEligible = lessonRequirementMet && quizRequirementMet;
 
     return NextResponse.json({
@@ -101,16 +107,16 @@ export async function GET(request, { params }) {
       data: {
         course: {
           _id: course._id,
-          title: course.title
+          title: course.title,
         },
         lessons: lessonCompletion,
         quizzes: quizCompletion,
         certificateEligible,
         requirements: {
           lessonsMet: lessonRequirementMet,
-          quizzesMet: quizRequirementMet
-        }
-      }
+          quizzesMet: quizRequirementMet,
+        },
+      },
     });
   } catch (error) {
     console.error("Error fetching certificate requirements:", error);

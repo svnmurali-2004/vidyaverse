@@ -269,7 +269,10 @@ export default function AdminQuizzesPage() {
                         {quiz.isActive ? "Active" : "Inactive"}
                       </Badge>
                       {quiz.isRequiredForCertificate && (
-                        <Badge variant="outline" className="border-amber-500 text-amber-700 bg-amber-50">
+                        <Badge
+                          variant="outline"
+                          className="border-amber-500 text-amber-700 bg-amber-50"
+                        >
                           Required for Certificate
                         </Badge>
                       )}

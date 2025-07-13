@@ -321,9 +321,7 @@ export default function SuccessPage({ params }) {
         </Button>
 
         <Button asChild className="flex-1">
-          <Link href={`/courses/${courseId}/learn`}>
-            Start Learning Now
-          </Link>
+          <Link href={`/courses/${courseId}/learn`}>Start Learning Now</Link>
         </Button>
       </div>
 
