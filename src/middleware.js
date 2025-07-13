@@ -1,105 +1,106 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const { pathname } = req.nextUrl;
+export async function middleware(req) {
+  const { pathname } = req.nextUrl;
 
-    // ✅ Public or auth pages — allow access
-    if (
-      pathname === "/" ||
-      pathname.startsWith("/signin") ||
-      pathname.startsWith("/signup")
-    ) {
-      return NextResponse.next();
-    }
-
-    // ✅ Admin-only API route (corrected path)
-    if (pathname.startsWith("/api/admin")) {
-      if (!token) {
-        return new NextResponse("Unauthorized", { status: 401 });
-      }
-      if (token.role !== "admin") {
-        return new NextResponse("Forbidden", { status: 403 });
-      }
-      return NextResponse.next();
-    }
-
-    // ✅ Student (or Admin) API routes
-    const studentApiRoutes = [
-      "/api/dashboard",
-      "/api/courses",
-      "/api/profile",
-      "/api/certificates",
-      "/api/quizzes",
-    ];
-    if (studentApiRoutes.some((route) => pathname.startsWith(route))) {
-      if (!token) {
-        return new NextResponse("Unauthorized", { status: 401 });
-      }
-      if (token.role !== "student" && token.role !== "admin") {
-        return new NextResponse("Forbidden", { status: 403 });
-      }
-      return NextResponse.next();
-    }
-
-    // ✅ All other protected API routes (except NextAuth routes)
-    if (
-      pathname.startsWith("/api/") &&
-      !pathname.startsWith("/api/auth") &&
-      pathname !== "/api/session"
-    ) {
-      if (!token) {
-        return new NextResponse("Unauthorized", { status: 401 });
-      }
-    }
-
-    // ✅ All other routes (pages) — require login
-    if (!token) {
-      return NextResponse.redirect(new URL("/signin", req.url));
-    }
-
+  // Skip middleware for static files and Next.js internals
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.includes(".")
+  ) {
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const { pathname } = req.nextUrl;
-
-        const publicRoutes = [
-          "/",
-          "/about",
-          "/contact",
-          "/signin",
-          "/signup",
-          "/auth/error",
-          "/auth/verify-request",
-        ];
-
-        const isPublic = publicRoutes.some((route) =>
-          pathname.startsWith(route)
-        );
-
-        const isAsset =
-          pathname.startsWith("/_next") ||
-          pathname.includes(".") ||
-          pathname === "/favicon.ico";
-
-        if (
-          isPublic ||
-          isAsset ||
-          pathname.startsWith("/api/auth") ||
-          pathname === "/api/session"
-        ) {
-          return true;
-        }
-
-        return !!token; // Require authentication
-      },
-    },
   }
-);
+
+  // Debug logging for production
+  if (process.env.NODE_ENV === "production") {
+    console.log("🔍 MIDDLEWARE:", {
+      pathname,
+      host: req.headers.get("host"),
+    });
+  }
+
+  // ✅ NextAuth.js routes - allow all auth-related endpoints first
+  if (pathname.startsWith("/api/auth") || pathname === "/api/auth/session") {
+    console.log("✅ Allowing NextAuth route:", pathname);
+    return NextResponse.next();
+  }
+
+  // ✅ Public pages — allow access
+  const publicPages = [
+    "/",
+    "/about",
+    "/contact",
+    "/signin",
+    "/signup",
+    "/auth/error",
+    "/auth/verify-request",
+  ];
+
+  if (publicPages.some((page) => pathname.startsWith(page))) {
+    return NextResponse.next();
+  }
+
+  // Get the token for protected routes
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (process.env.NODE_ENV === "production") {
+    console.log("🔑 Token check:", {
+      pathname,
+      hasToken: !!token,
+      tokenRole: token?.role,
+    });
+  }
+
+  // ✅ Admin-only API routes
+  if (pathname.startsWith("/api/admin")) {
+    if (!token) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+    if (token.role !== "admin") {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+    return NextResponse.next();
+  }
+
+  // ✅ Student (or Admin) API routes
+  const studentApiRoutes = [
+    "/api/dashboard",
+    "/api/courses",
+    "/api/profile",
+    "/api/certificates",
+    "/api/quizzes",
+  ];
+  if (studentApiRoutes.some((route) => pathname.startsWith(route))) {
+    if (!token) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+    if (token.role !== "student" && token.role !== "admin") {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+    return NextResponse.next();
+  }
+
+  // ✅ All other protected API routes
+  if (pathname.startsWith("/api/")) {
+    if (!token) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+    return NextResponse.next();
+  }
+
+  // ✅ Protected pages — require login
+  if (!token) {
+    console.log("❌ No token for protected page, redirecting to signin");
+    return NextResponse.redirect(new URL("/signin", req.url));
+  }
+
+  return NextResponse.next();
+}
 
 // ✅ Matcher for relevant routes
 export const config = {
