@@ -31,8 +31,8 @@ export async function POST(request) {
 
       // Check if already enrolled
       const existingEnrollment = await Enrollment.findOne({
-        userId: session.user.id,
-        courseId: courseId,
+        user: session.user.id,
+        course: courseId,
       });
 
       if (existingEnrollment) {
@@ -106,6 +106,9 @@ export async function POST(request) {
       const enrollment = new Enrollment({
         user: session.user.id,
         course: order.course,
+        enrolledAt: new Date(),
+        progress: 0,
+        status: "active",
       });
       await enrollment.save();
 

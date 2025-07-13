@@ -2,17 +2,24 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    course: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    course: { type: mongoose.Schema.Types.ObjectId, ref: "Course", required: true },
     status: {
       type: String,
-      enum: ["pending", "paid", "failed"],
+      enum: ["pending", "completed", "failed"],
       default: "pending",
     },
-    amount: Number,
-    paymentId: String, // Razorpay/Stripe payment ID
-    razorpayOrderId: String, // Razorpay order ID for lookup
-    provider: { type: String, enum: ["razorpay", "stripe"] },
+    amount: { type: Number, required: true },
+    paymentMethod: { 
+      type: String, 
+      enum: ["razorpay", "stripe", "free"], 
+      default: "razorpay" 
+    },
+    razorpayOrderId: String, // Razorpay order ID
+    razorpayPaymentId: String, // Razorpay payment ID
+    razorpaySignature: String, // Razorpay signature for verification
+    couponCode: String,
+    paidAt: Date,
   },
   { timestamps: true }
 );

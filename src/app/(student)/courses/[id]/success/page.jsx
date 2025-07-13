@@ -71,7 +71,7 @@ export default function SuccessPage({ params }) {
         await navigator.share({
           title: `I just enrolled in ${course?.title}!`,
           text: `Check out this amazing course on VidyaVerse`,
-          url: window.location.origin + `/student/courses/${courseId}`,
+          url: window.location.origin + `/courses/${courseId}`,
         });
       } catch (error) {
         console.log("Error sharing:", error);
@@ -79,7 +79,7 @@ export default function SuccessPage({ params }) {
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(
-        window.location.origin + `/student/courses/${courseId}`
+        window.location.origin + `/courses/${courseId}`
       );
       toast.success("Course link copied to clipboard!");
     }
@@ -188,7 +188,7 @@ export default function SuccessPage({ params }) {
       {/* Action Buttons */}
       <div className="grid md:grid-cols-2 gap-4 mb-8">
         <Button asChild size="lg" className="h-16">
-          <Link href={`/student/courses/${courseId}/learn`}>
+          <Link href={`/courses/${courseId}/learn`}>
             <Play className="h-6 w-6 mr-3" />
             <div className="text-left">
               <div className="font-semibold">Start Learning</div>
@@ -313,15 +313,15 @@ export default function SuccessPage({ params }) {
       {/* Navigation */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Button asChild variant="outline" className="flex-1">
-          <Link href="/student/courses">Browse More Courses</Link>
+          <Link href="/courses">Browse More Courses</Link>
         </Button>
 
         <Button asChild variant="outline" className="flex-1">
-          <Link href="/student/dashboard">Go to Dashboard</Link>
+          <Link href="/dashboard">Go to Dashboard</Link>
         </Button>
 
         <Button asChild className="flex-1">
-          <Link href={`/student/courses/${courseId}/learn`}>
+          <Link href={`/courses/${courseId}/learn`}>
             Start Learning Now
           </Link>
         </Button>

@@ -90,15 +90,21 @@ export default function ProfilePage() {
 
   const fetchEnrollments = async () => {
     try {
+      console.log("Fetching enrollments...");
       const response = await fetch("/api/enrollments");
       if (response.ok) {
         const result = await response.json();
-        setEnrollments(result.enrollments || result.data || []);
+        console.log("Enrollments API response:", result); // Debug log
+        const enrollmentData = result.data || result.enrollments || [];
+        console.log("Setting enrollments:", enrollmentData);
+        setEnrollments(enrollmentData);
       } else {
         console.error("Failed to fetch enrollments:", response.statusText);
+        toast.error("Failed to load enrollment data");
       }
     } catch (error) {
       console.error("Error fetching enrollments:", error);
+      toast.error("Failed to load enrollment data");
     }
   };
 
@@ -159,8 +165,27 @@ export default function ProfilePage() {
   };
 
   const calculateProgress = (enrollment) => {
-    // Use the progress percentage from the enrollment object
-    return Math.round(enrollment.progressPercentage || 0);
+    // Debug log to understand the data structure
+    console.log("Calculating progress for enrollment:", enrollment);
+    
+    // Try multiple approaches to get progress
+    if (enrollment.progressPercentage !== undefined) {
+      return Math.round(enrollment.progressPercentage);
+    }
+    
+    // Calculate from completed vs total lessons if available
+    if (enrollment.completedLessons !== undefined && enrollment.totalLessons > 0) {
+      const percentage = (enrollment.completedLessons / enrollment.totalLessons) * 100;
+      return Math.round(percentage);
+    }
+    
+    // Fallback to enrollment progress field
+    if (enrollment.progress !== undefined) {
+      return Math.round(enrollment.progress);
+    }
+    
+    // Default to 0
+    return 0;
   };
 
   const handleDownloadCertificate = async (certificateId) => {
@@ -482,12 +507,18 @@ export default function ProfilePage() {
                           className="w-full h-2"
                         />
 
-                        {enrollment.completedLessons !== undefined && (
-                          <div className="text-sm text-gray-600">
-                            {enrollment.completedLessons} of{" "}
-                            {enrollment.totalLessons || 0} lessons completed
-                          </div>
-                        )}
+                        <div className="text-sm text-gray-600">
+                          {enrollment.completedLessons !== undefined && enrollment.totalLessons !== undefined ? (
+                            <>
+                              {enrollment.completedLessons} of{" "}
+                              {enrollment.totalLessons} lessons completed
+                            </>
+                          ) : (
+                            <span className="text-gray-500 italic">
+                              Progress data loading...
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex space-x-3 mt-6">
@@ -630,9 +661,14 @@ export default function ProfilePage() {
                 <div className="text-center p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                   <BookOpen className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-purple-600 mb-1">
-                    {enrollments.reduce((total, enrollment) => {
-                      return total + (enrollment.totalLessons || 0);
-                    }, 0)}
+                    {(() => {
+                      const totalLessons = enrollments.reduce((total, enrollment) => {
+                        console.log("Enrollment for total lessons:", enrollment.course?.title, "totalLessons:", enrollment.totalLessons);
+                        return total + (enrollment.totalLessons || 0);
+                      }, 0);
+                      console.log("Final total lessons:", totalLessons);
+                      return totalLessons;
+                    })()}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     Total Lessons

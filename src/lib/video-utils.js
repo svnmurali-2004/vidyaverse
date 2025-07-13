@@ -3,6 +3,25 @@
  */
 
 /**
+ * Extract Google Drive video ID from Google Drive URL
+ */
+export function getGoogleDriveVideoId(url) {
+  if (!url) return null;
+
+  const patterns = [
+    /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/,
+    /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+
+  return null;
+}
+
+/**
  * Extract YouTube video ID from various YouTube URL formats
  */
 export function getYouTubeVideoId(url) {
@@ -37,6 +56,17 @@ export function getVimeoVideoId(url) {
  */
 export function getVideoEmbedInfo(url) {
   if (!url) return null;
+
+  // Check Google Drive first
+  const googleDriveId = getGoogleDriveVideoId(url);
+  if (googleDriveId) {
+    return {
+      type: "googledrive",
+      id: googleDriveId,
+      embedUrl: `https://drive.google.com/file/d/${googleDriveId}/preview`,
+      thumbnailUrl: null,
+    };
+  }
 
   const youtubeId = getYouTubeVideoId(url);
   if (youtubeId) {

@@ -57,24 +57,15 @@ export function LoginForm({ className, ...props }) {
     setIsLoading(true);
 
     try {
-      const result = await signIn(provider, {
-        redirect: false,
+      // For OAuth providers, use the redirect page to handle role-based routing
+      await signIn(provider, {
+        callbackUrl: "/auth/redirect",
       });
-
-      if (result?.ok) {
-        toast.success("Signed in successfully!");
-        // Get session to check user role and redirect accordingly
-        const session = await getSession();
-        if (session?.user?.role === "admin") {
-          router.push("/admin");
-        } else {
-          router.push("/dashboard");
-        }
-      } else if (result?.error) {
-        toast.error("Failed to sign in");
-        setIsLoading(false);
-      }
+      
+      // Note: The page will redirect, so we don't need to handle anything else here
+      
     } catch (err) {
+      console.error(`OAuth sign in error:`, err);
       toast.error(`Failed to sign in with ${provider}`);
       setIsLoading(false);
     }

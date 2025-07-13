@@ -61,6 +61,23 @@ export default function VideoPlayer({
     );
   }
 
+  // Google Drive Player
+  if (videoInfo.type === "googledrive") {
+    return (
+      <div className={`relative ${className}`}>
+        <iframe
+          src={videoInfo.embedUrl}
+          title={title || "Google Drive Video"}
+          className="w-full h-full"
+          frameBorder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          onLoad={() => setIsPlaying(true)}
+        />
+      </div>
+    );
+  }
+
   // YouTube Player
   if (videoInfo.type === "youtube") {
     return (

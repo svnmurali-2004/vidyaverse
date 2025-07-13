@@ -4,8 +4,11 @@ const withPWA = withPWAInit({
   dest: "public",
   register: true,
   skipWaiting: true,
-  disable: false, // Enable PWA in development for testing
+  disable: process.env.NODE_ENV === "development" ? false : false, // Enable PWA in both dev and prod
   buildExcludes: [/middleware-manifest\.json$/],
+  fallbacks: {
+    document: "/offline", // if you want to fallback to a custom page rather than /_offline
+  },
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,

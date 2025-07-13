@@ -225,6 +225,11 @@ export default function QuizzesPage() {
                         <Badge variant={quiz.canAttempt ? "default" : "secondary"}>
                           {quiz.canAttempt ? "Available" : "Completed"}
                         </Badge>
+                        {quiz.isRequiredForCertificate && (
+                          <Badge variant="outline" className="border-amber-500 text-amber-700 bg-amber-50">
+                            Required for Certificate
+                          </Badge>
+                        )}
                         <div className={`flex items-center ${status.color}`}>
                           <StatusIcon className="h-4 w-4 mr-1" />
                           <span className="text-sm font-medium">{status.text}</span>

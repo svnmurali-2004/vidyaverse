@@ -25,6 +25,9 @@ import {
   Download,
   SkipForward,
   SkipBack,
+  Award,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { use } from "react";
@@ -49,6 +52,10 @@ export default function LearnPage({ params }) {
   const [currentQuizAnswers, setCurrentQuizAnswers] = useState({});
   const [quizResults, setQuizResults] = useState(null);
   const [showQuizResults, setShowQuizResults] = useState(false);
+  const [certificateStatus, setCertificateStatus] = useState(null);
+  const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     const lessonId = searchParams.get("lesson");
@@ -144,16 +151,21 @@ export default function LearnPage({ params }) {
       const response = await fetch(`/api/progress?courseId=${courseId}`);
       if (response.ok) {
         const data = await response.json();
+        console.log("Progress API response:", data);
         const progressMap = {};
         const completed = new Set();
 
         data.data?.forEach((p) => {
+          console.log("Processing progress item:", p);
           progressMap[p.lessonId._id || p.lessonId] = p;
           if (p.isCompleted) {
             completed.add(p.lessonId._id || p.lessonId);
+            console.log("Added completed lesson:", p.lessonId._id || p.lessonId);
           }
         });
 
+        console.log("Completed lessons set:", completed);
+        console.log("Progress map:", progressMap);
         setProgress(progressMap);
         setCompletedLessons(completed);
       }
@@ -197,9 +209,23 @@ export default function LearnPage({ params }) {
             selectLesson(nextLesson);
           }, 1500);
         } else if (completionPercentage >= 80) {
-          // Course completed, show completion message
+          // Course completed, show spectacular completion message
           setTimeout(() => {
-            toast.success("🎉 Congratulations! You've completed the course!");
+            toast.success(
+              "🎉 Fantastic! You've mastered this course! Ready for your certificate?",
+              { 
+                duration: 6000,
+                style: {
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  border: '2px solid #ffd700',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+                }
+              }
+            );
           }, 1000);
         }
       }
@@ -208,7 +234,11 @@ export default function LearnPage({ params }) {
     }
   };
 
-  const checkAndGenerateCertificate = async () => {
+  const checkAndGenerateCertificate = async (manual = false) => {
+    if (manual) {
+      setIsGeneratingCertificate(true);
+    }
+
     try {
       const response = await fetch("/api/certificates/generate", {
         method: "POST",
@@ -216,18 +246,87 @@ export default function LearnPage({ params }) {
         body: JSON.stringify({ courseId }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          toast.success(
-            "🏆 Certificate generated! Check your certificates page to download it.",
-            { duration: 5000 }
-          );
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Create spectacular success experience
+        setShowCelebration(true);
+        setCertificateStatus({ 
+          success: true, 
+          message: "🏆 Congratulations! Your certificate has been generated!",
+          certificate: data.certificate 
+        });
+        
+        // Show celebration modal after a brief delay
+        setTimeout(() => {
+          setShowCertificateModal(true);
+        }, 1000);
+
+        // Auto-hide celebration after 6 seconds
+        setTimeout(() => {
+          setShowCelebration(false);
+        }, 6000);
+
+        // Enhanced toast with celebration
+        toast.success(
+          "🎉 Achievement Unlocked! Your certificate is ready!",
+          { 
+            duration: 6000,
+            style: {
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: '2px solid #ffd700',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+            }
+          }
+        );
+      } else if (data.requirements) {
+        // Show specific requirements not met
+        const { lessons, quizzes } = data.requirements;
+        
+        if (!lessons.met) {
+          const message = `Complete ${lessons.required}% of lessons to earn certificate (currently ${lessons.current.toFixed(1)}%)`;
+          toast.error(message, { duration: 4000 });
+          setCertificateStatus({ 
+            success: false, 
+            message, 
+            requirements: data.requirements 
+          });
+        } else if (!quizzes.met) {
+          const failedQuizzes = quizzes.details.filter(q => !q.passed);
+          const message = `Pass all required quizzes to earn certificate. Outstanding: ${failedQuizzes.map(q => q.title).join(', ')}`;
+          toast.error(message, { duration: 6000 });
+          setCertificateStatus({ 
+            success: false, 
+            message, 
+            requirements: data.requirements 
+          });
+        }
+      } else {
+        setCertificateStatus({ 
+          success: false, 
+          message: data.error || "Failed to generate certificate" 
+        });
+        if (manual) {
+          toast.error(data.error || "Failed to generate certificate");
         }
       }
     } catch (error) {
       console.error("Error generating certificate:", error);
-      // Don't show error toast as certificate generation is optional
+      setCertificateStatus({ 
+        success: false, 
+        message: "Error connecting to server" 
+      });
+      if (manual) {
+        toast.error("Error generating certificate");
+      }
+    } finally {
+      if (manual) {
+        setIsGeneratingCertificate(false);
+      }
     }
   };
 
@@ -354,6 +453,107 @@ export default function LearnPage({ params }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Celebration Confetti Overlay */}
+      {showCelebration && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-purple-500/20 to-pink-500/20 animate-pulse" />
+          {/* Confetti Animation */}
+          <div className="confetti-container">
+            {[...Array(50)].map((_, i) => (
+              <div
+                key={i}
+                className="confetti"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 3}s`,
+                  backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57'][Math.floor(Math.random() * 6)],
+                  animationDuration: `${3 + Math.random() * 2}s`
+                }}
+              />
+            ))}
+          </div>
+          {/* Central Achievement Banner */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+            <div className="bg-white/95 dark:bg-gray-800/95 p-8 rounded-2xl shadow-2xl border-4 border-yellow-400 animate-bounce">
+              <div className="text-6xl mb-4">🏆</div>
+              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-2">
+                CERTIFICATE EARNED!
+              </h2>
+              <p className="text-lg text-gray-700 dark:text-gray-300">
+                Outstanding Achievement!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Certificate Success Modal */}
+      {showCertificateModal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform animate-scale-in">
+            <div className="relative p-8 text-center">
+              {/* Close button */}
+              <button
+                onClick={() => setShowCertificateModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              
+              {/* Success Content */}
+              <div className="space-y-6">
+                <div className="relative">
+                  <div className="w-24 h-24 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                    <Award className="h-12 w-12 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                    <CheckCircle className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    🎉 Congratulations!
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    You've successfully completed <span className="font-semibold text-blue-600">{course?.title}</span> and earned your certificate!
+                  </p>
+                  <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-full text-sm font-medium text-green-800 dark:text-green-400">
+                    <Award className="h-4 w-4 mr-2" />
+                    Certificate Ready for Download
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => {
+                      router.push('/certificates');
+                      setShowCertificateModal(false);
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+                  >
+                    <Award className="h-5 w-5 mr-2" />
+                    View & Download Certificate
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCertificateModal(false)}
+                    className="w-full"
+                  >
+                    Continue Learning
+                  </Button>
+                </div>
+
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Share your achievement on social media! 🎓
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -592,27 +792,174 @@ export default function LearnPage({ params }) {
                   })}
                 </div>
               )}
+
+              {/* Certificate Section */}
+              {!isPreviewMode && enrollment && completedLessons.size > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-gray-500 uppercase tracking-wide">Certificate</h4>
+                  <div className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                    certificateStatus?.success 
+                      ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-300 dark:border-green-700 shadow-lg'
+                      : 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800'
+                  }`}>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <div className={`p-1.5 rounded-lg ${
+                          certificateStatus?.success 
+                            ? 'bg-green-100 dark:bg-green-900/30'
+                            : 'bg-blue-100 dark:bg-blue-900/30'
+                        }`}>
+                          <Award className={`h-4 w-4 ${
+                            certificateStatus?.success ? 'text-green-600' : 'text-blue-600'
+                          }`} />
+                        </div>
+                        <span className="font-medium text-sm">Course Certificate</span>
+                        {certificateStatus?.success && (
+                          <div className="flex-1 flex justify-end">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span>Lesson Progress:</span>
+                          <span className={`font-medium ${
+                            (completedLessons.size / lessons.length) * 100 >= 80 
+                              ? 'text-green-600' 
+                              : 'text-orange-600'
+                          }`}>
+                            {Math.round((completedLessons.size / lessons.length) * 100)}%
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {completedLessons.size} of {lessons.length} lessons completed
+                        </div>
+                        <div className="relative">
+                          <Progress
+                            value={(completedLessons.size / lessons.length) * 100}
+                            className="h-2 bg-gray-200 dark:bg-gray-700"
+                          />
+                          {(completedLessons.size / lessons.length) * 100 >= 80 && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full h-2 animate-pulse opacity-75"></div>
+                          )}
+                        </div>
+                      </div>
+
+                      {certificateStatus && (
+                        <div className={`p-3 rounded-lg text-xs transition-all duration-300 ${
+                          certificateStatus.success 
+                            ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-400 border border-green-200 dark:border-green-700' 
+                            : 'bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-800 dark:from-orange-900/30 dark:to-yellow-900/30 dark:text-orange-400 border border-orange-200 dark:border-orange-700'
+                        }`}>
+                          <div className="flex items-start space-x-2">
+                            {certificateStatus.success ? (
+                              <div className="flex items-center space-x-1">
+                                <CheckCircle className="h-4 w-4 flex-shrink-0 animate-bounce" />
+                                <div className="w-1 h-1 bg-green-500 rounded-full animate-ping"></div>
+                              </div>
+                            ) : (
+                              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            )}
+                            <div className="flex-1">
+                              <span className="leading-tight font-medium">{certificateStatus.message}</span>
+                              {certificateStatus.success && (
+                                <div className="mt-1 text-xs opacity-75">
+                                  Ready for download! 🎓
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {!certificateStatus.success && certificateStatus.requirements && (
+                            <div className="mt-3 space-y-2">
+                              {certificateStatus.requirements.quizzes && !certificateStatus.requirements.quizzes.met && (
+                                <div className="text-xs bg-white/50 dark:bg-gray-800/50 p-2 rounded">
+                                  <span className="font-medium">Required Quizzes:</span>
+                                  <div className="ml-2 space-y-1 mt-1">
+                                    {certificateStatus.requirements.quizzes.details
+                                      .filter(q => !q.passed)
+                                      .map((quiz, idx) => (
+                                        <div key={idx} className="flex items-center justify-between">
+                                          <span>• {quiz.title}</span>
+                                          <span className="text-red-600 font-medium">Need {quiz.passingScore}%</span>
+                                        </div>
+                                      ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (certificateStatus?.success) {
+                            router.push('/certificates');
+                          } else {
+                            checkAndGenerateCertificate(true);
+                          }
+                        }}
+                        disabled={isGeneratingCertificate || (completedLessons.size / lessons.length) * 100 < 80}
+                        className={`w-full transition-all duration-300 ${
+                          certificateStatus?.success
+                            ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg transform hover:scale-105'
+                            : isGeneratingCertificate 
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse'
+                            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:scale-105'
+                        } font-medium rounded-lg shadow-md`}
+                        variant={certificateStatus?.success ? "default" : "default"}
+                      >
+                        {isGeneratingCertificate ? (
+                          <>
+                            <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+                            <span className="animate-pulse">Generating Magic...</span>
+                          </>
+                        ) : certificateStatus?.success ? (
+                          <>
+                            <Award className="h-4 w-4 mr-2" />
+                            <span className="flex items-center">
+                              View Certificate
+                              <div className="ml-2 w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Award className="h-3 w-3 mr-2" />
+                            Generate Certificate
+                          </>
+                        )}
+                      </Button>
+
+                      {(completedLessons.size / lessons.length) * 100 < 80 && (
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500">
+                            Complete 80% of lessons to unlock certificate
+                          </p>
+                          <div className="mt-1 text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            {80 - Math.round((completedLessons.size / lessons.length) * 100)}% remaining
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col min-h-0">
           {/* Video Player */}
-          <div
-            className={`bg-black ${
-              sidebarOpen ? "lg:ml-80" : ""
-            } transition-all duration-200`}
-          >
+          <div className="bg-black flex-shrink-0">
             {renderVideoPlayer()}
           </div>
 
           {/* Lesson Content */}
-          <div
-            className={`flex-1 ${
-              sidebarOpen ? "lg:ml-80" : ""
-            } transition-all duration-200`}
-          >
+          <div className="flex-1 overflow-auto">
             <div className="p-6 max-w-4xl mx-auto">
               {currentLesson && (
                 <div className="space-y-6">
@@ -793,14 +1140,85 @@ export default function LearnPage({ params }) {
                               )}
                             </div>
                           ) : (
-                            <div
-                              className="prose max-w-none dark:prose-invert"
-                              dangerouslySetInnerHTML={{
-                                __html:
-                                  currentLesson.content ||
-                                  "No additional content available for this lesson.",
-                              }}
-                            />
+                            <div className="space-y-4">
+                              {/* Enhanced content display */}
+                              {currentLesson.content ? (
+                                <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-800 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20">
+                                  <div 
+                                    className="formatted-content"
+                                    dangerouslySetInnerHTML={{
+                                      __html: currentLesson.content
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                // Fallback for plain text or no content
+                                <div className="space-y-6">
+                                  {currentLesson.description && (
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                                      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                                        About This Lesson
+                                      </h3>
+                                      <p className="text-blue-800 dark:text-blue-200 leading-relaxed whitespace-pre-wrap">
+                                        {currentLesson.description}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Video lesson content */}
+                                  {currentLesson.type === "video" && (
+                                    <div className="space-y-4">
+                                      <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                                        <div className="flex items-center space-x-3 mb-4">
+                                          <Play className="h-6 w-6 text-blue-600" />
+                                          <h3 className="text-xl font-semibold">Video Lesson</h3>
+                                        </div>
+                                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                          Watch the video above to learn about {currentLesson.title.toLowerCase()}. 
+                                          Take notes as you follow along, and don't forget to mark the lesson as complete when you're done!
+                                        </p>
+                                        {currentLesson.duration && (
+                                          <div className="mt-4 inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm">
+                                            <Clock className="h-4 w-4 mr-1" />
+                                            Duration: {currentLesson.duration} minutes
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Text lesson content */}
+                                  {currentLesson.type === "text" && (
+                                    <div className="space-y-4">
+                                      <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                                        <div className="flex items-center space-x-3 mb-4">
+                                          <BookOpen className="h-6 w-6 text-green-600" />
+                                          <h3 className="text-xl font-semibold">Reading Material</h3>
+                                        </div>
+                                        <div className="prose prose-lg max-w-none dark:prose-invert">
+                                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                            {currentLesson.description || "This is a text-based lesson. Please read through the material carefully and take notes as needed."}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Default fallback */}
+                                  {!currentLesson.content && !currentLesson.description && (
+                                    <div className="text-center py-12">
+                                      <BookOpen className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                                        Content Coming Soon
+                                      </h3>
+                                      <p className="text-gray-600 dark:text-gray-400">
+                                        Additional lesson content will be available here soon.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           )}
                         </CardContent>
                       </Card>

@@ -34,24 +34,44 @@ export async function GET(request) {
     // Calculate progress for each enrollment
     const enrollmentsWithProgress = await Promise.all(
       enrollments.map(async (enrollment) => {
-        // Get total lessons in course by querying lessons collection
-        const totalLessons = await Lesson.countDocuments({
-          course: enrollment.course._id,
-        });
+        try {
+          // Get total lessons in course by querying lessons collection
+          const totalLessons = await Lesson.countDocuments({
+            course: enrollment.course._id,
+          });
 
-        // Get completed lessons count for reference
-        const completedLessons = await Progress.countDocuments({
-          userId: session.user.id,
-          courseId: enrollment.course._id,
-          isCompleted: true,
-        });
+          console.log(`Course ${enrollment.course.title}: Found ${totalLessons} total lessons`);
 
-        return {
-          ...enrollment.toObject(),
-          completedLessons,
-          totalLessons,
-          progressPercentage: enrollment.progress || 0, // Use the progress from enrollment
-        };
+          // Get completed lessons count - using both userId and user for compatibility
+          const completedLessons = await Progress.countDocuments({
+            $or: [
+              { userId: session.user.id, courseId: enrollment.course._id, isCompleted: true },
+              { user: session.user.id, course: enrollment.course._id, isCompleted: true }
+            ]
+          });
+
+          console.log(`Course ${enrollment.course.title}: Found ${completedLessons} completed lessons`);
+
+          // Calculate progress percentage
+          const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+
+          console.log(`Course ${enrollment.course.title}: Progress ${progressPercentage.toFixed(1)}%`);
+
+          return {
+            ...enrollment.toObject(),
+            completedLessons,
+            totalLessons,
+            progressPercentage: Math.round(progressPercentage),
+          };
+        } catch (error) {
+          console.error(`Error calculating progress for enrollment ${enrollment._id}:`, error);
+          return {
+            ...enrollment.toObject(),
+            completedLessons: 0,
+            totalLessons: 0,
+            progressPercentage: 0,
+          };
+        }
       })
     );
 

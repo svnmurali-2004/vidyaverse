@@ -59,7 +59,14 @@ export default function CertificatesPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `certificate-${studentName.replace(/\s+/g, '-')}-${courseName.replace(/\s+/g, '-')}.pdf`;
+        
+        // Safely handle undefined values and create filename
+        const safeCourseName = courseName || 'course';
+        const safeStudentName = studentName || 'student';
+        const safeCourseNameFormatted = safeCourseName.replace(/\s+/g, '-');
+        const safeStudentNameFormatted = safeStudentName.replace(/\s+/g, '-');
+        
+        a.download = `certificate-${safeStudentNameFormatted}-${safeCourseNameFormatted}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -206,8 +213,8 @@ export default function CertificatesPage() {
                   <Button
                     onClick={() => downloadCertificate(
                       certificate._id, 
-                      certificate.course.title, 
-                      session?.user?.name
+                      certificate.course?.title || 'Certificate', 
+                      certificate.user?.name || session?.user?.name || 'Student'
                     )}
                     disabled={downloading[certificate._id]}
                     className="w-full"

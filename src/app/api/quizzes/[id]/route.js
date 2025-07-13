@@ -4,6 +4,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Quiz from "@/models/quiz.model";
 import QuizAttempt from "@/models/quizAttempt.model";
+import Course from "@/models/course.model";
+import Lesson from "@/models/lesson.model";
+import User from "@/models/user.model";
 
 export async function GET(request, { params }) {
   try {
@@ -87,6 +90,7 @@ export async function PUT(request, { params }) {
       passingScore,
       attempts,
       isActive,
+      isRequiredForCertificate,
     } = body;
 
     if (!title || !course || !questions || questions.length === 0) {
@@ -156,6 +160,7 @@ export async function PUT(request, { params }) {
         passingScore: passingScore || 70,
         attempts: attempts || 3,
         isActive: isActive !== undefined ? isActive : true,
+        isRequiredForCertificate: isRequiredForCertificate !== undefined ? isRequiredForCertificate : false,
         updatedAt: new Date(),
       },
       { new: true }

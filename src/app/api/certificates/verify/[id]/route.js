@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Certificate from "@/models/certificate.model";
+import Course from "@/models/course.model";
+import User from "@/models/user.model";
 
 // GET /api/certificates/verify/[id] - Verify certificate by ID
 export async function GET(request, { params }) {

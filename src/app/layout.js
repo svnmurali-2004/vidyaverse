@@ -4,6 +4,8 @@ import "../styles/prose.css";
 import AuthProvider from "@/components/providers/auth-provider";
 import ToastProvider from "@/components/providers/toast-provider";
 import PWAInstall from "@/components/PWAInstall";
+import PWADebug from "@/components/PWADebug";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,9 +73,11 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
+          <ServiceWorkerRegistration />
           {children}
           <ToastProvider />
           <PWAInstall />
+          <PWADebug />
         </AuthProvider>
       </body>
     </html>

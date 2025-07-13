@@ -65,19 +65,19 @@ export default function CheckoutPage({ params }) {
         // Check if already enrolled
         if (data.data.isEnrolled) {
           toast.error("You are already enrolled in this course");
-          router.push(`/student/courses/${courseId}`);
+          router.push(`/courses/${courseId}`);
           return;
         }
 
         // Redirect if course is free
         if (data.data.price === 0) {
           toast.error("This course is free. No payment required.");
-          router.push(`/student/courses/${courseId}`);
+          router.push(`/courses/${courseId}`);
           return;
         }
       } else {
         toast.error("Course not found");
-        router.push("/student/courses");
+        router.push("/courses");
       }
     } catch (error) {
       console.error("Error fetching course:", error);
@@ -119,24 +119,47 @@ export default function CheckoutPage({ params }) {
     setProcessing(true);
 
     try {
-      // Create order
-      const orderResponse = await fetch("/api/orders", {
+      // Create order using the existing payments API
+      const orderResponse = await fetch("/api/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           courseId,
-          amount: finalPrice,
-          couponCode: couponCode || undefined,
-          paymentMethod,
+          action: "create_order",
         }),
       });
 
+      const responseText = await orderResponse.text();
+      
       if (!orderResponse.ok) {
-        const error = await orderResponse.json();
-        throw new Error(error.error || "Failed to create order");
+        console.error("Order creation failed:", {
+          status: orderResponse.status,
+          statusText: orderResponse.statusText,
+          response: responseText
+        });
+        
+        let errorMessage = "Failed to create order";
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Response is not JSON, might be HTML error page
+          if (responseText.includes("<!DOCTYPE") || responseText.includes("<html")) {
+            errorMessage = "Server error occurred. Please try again.";
+          } else {
+            errorMessage = responseText || errorMessage;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
-      const orderData = await orderResponse.json();
+      let orderData;
+      try {
+        orderData = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Failed to parse order response:", responseText);
+        throw new Error("Invalid response from server");
+      }
 
       if (paymentMethod === "razorpay") {
         // Initialize Razorpay
@@ -144,12 +167,12 @@ export default function CheckoutPage({ params }) {
         script.src = "https://checkout.razorpay.com/v1/checkout.js";
         script.onload = () => {
           const options = {
-            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-            amount: finalPrice * 100, // Razorpay expects amount in paise
-            currency: "INR",
+            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_6etUlx1588eZwL",
+            amount: orderData.amount, // Already in paise from API
+            currency: orderData.currency,
             name: "VidyaVerse",
             description: course.title,
-            order_id: orderData.data.razorpayOrderId,
+            order_id: orderData.orderId,
             prefill: {
               name: session.user.name,
               email: session.user.email,
@@ -158,21 +181,40 @@ export default function CheckoutPage({ params }) {
               color: "#2563eb",
             },
             handler: async (response) => {
-              // Verify payment
-              const verifyResponse = await fetch("/api/payments/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  orderId: orderData.data._id,
-                  paymentId: response.razorpay_payment_id,
-                  signature: response.razorpay_signature,
-                }),
-              });
+              try {
+                // Verify payment using the existing payments API
+                const verifyResponse = await fetch("/api/payments", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "verify_payment",
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                  }),
+                });
 
-              if (verifyResponse.ok) {
-                toast.success("Payment successful! You are now enrolled.");
-                router.push(`/student/courses/${courseId}/success`);
-              } else {
+                const verifyText = await verifyResponse.text();
+                
+                if (verifyResponse.ok) {
+                  let verifyData;
+                  try {
+                    verifyData = JSON.parse(verifyText);
+                  } catch (e) {
+                    console.error("Failed to parse verify response:", verifyText);
+                  }
+                  
+                  toast.success("Payment successful! You are now enrolled.");
+                  router.push(`/courses/${courseId}/success`);
+                } else {
+                  console.error("Payment verification failed:", {
+                    status: verifyResponse.status,
+                    response: verifyText
+                  });
+                  toast.error("Payment verification failed");
+                }
+              } catch (error) {
+                console.error("Error during payment verification:", error);
                 toast.error("Payment verification failed");
               }
             },
@@ -212,7 +254,7 @@ export default function CheckoutPage({ params }) {
           <CardContent className="p-8 text-center">
             <h2 className="text-2xl font-bold mb-4">Course Not Found</h2>
             <Button asChild>
-              <Link href="/student/courses">Browse Courses</Link>
+              <Link href="/courses">Browse Courses</Link>
             </Button>
           </CardContent>
         </Card>
@@ -225,7 +267,7 @@ export default function CheckoutPage({ params }) {
       {/* Header */}
       <div className="flex items-center space-x-4 mb-8">
         <Button variant="outline" asChild>
-          <Link href={`/student/courses/${courseId}`}>
+          <Link href={`/courses/${courseId}`}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Course
           </Link>

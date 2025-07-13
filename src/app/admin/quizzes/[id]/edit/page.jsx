@@ -96,6 +96,7 @@ export default function EditQuizPage({ params }) {
           passingScore: quiz.passingScore || 70,
           attempts: quiz.attempts || 3,
           isActive: quiz.isActive !== undefined ? quiz.isActive : true,
+          isRequiredForCertificate: quiz.isRequiredForCertificate !== undefined ? quiz.isRequiredForCertificate : false,
           questions: quiz.questions || [],
         });
       } else {
@@ -448,6 +449,19 @@ export default function EditQuizPage({ params }) {
               />
               <Label htmlFor="isActive">
                 Active (students can take this quiz)
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isRequiredForCertificate"
+                checked={formData.isRequiredForCertificate}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, isRequiredForCertificate: checked })
+                }
+              />
+              <Label htmlFor="isRequiredForCertificate">
+                Required for Certificate (students must pass this quiz to earn certificate)
               </Label>
             </div>
           </CardContent>

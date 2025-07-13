@@ -67,6 +67,10 @@ const QuizSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isRequiredForCertificate: {
+      type: Boolean,
+      default: false, // By default, quizzes are not required for certificate
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

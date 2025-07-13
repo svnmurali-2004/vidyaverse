@@ -21,17 +21,25 @@ export async function POST(request) {
 
     const body = await request.json();
     const {
+      orderId,
+      paymentId,
+      signature,
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
       courseId,
     } = body;
 
+    // Support both parameter formats for flexibility
+    const orderIdToUse = orderId || razorpay_order_id;
+    const paymentIdToUse = paymentId || razorpay_payment_id;
+    const signatureToUse = signature || razorpay_signature;
+
     // Verify payment signature
     const paymentVerification = await verifyRazorpayPayment({
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
+      razorpay_order_id: orderIdToUse,
+      razorpay_payment_id: paymentIdToUse,
+      razorpay_signature: signatureToUse,
     });
 
     if (!paymentVerification.isValid) {
@@ -41,8 +49,15 @@ export async function POST(request) {
       );
     }
 
-    // Find the order
-    const order = await Order.findOne({ razorpayOrderId: razorpay_order_id });
+    // Find the order - try both orderId (database _id) and razorpay order id
+    let order;
+    if (orderId && orderId.length === 24) {
+      // If orderId looks like a MongoDB ObjectId, search by _id
+      order = await Order.findById(orderId);
+    } else {
+      // Otherwise search by razorpay order id
+      order = await Order.findOne({ razorpayOrderId: orderIdToUse });
+    }
 
     if (!order) {
       return NextResponse.json(
@@ -53,15 +68,15 @@ export async function POST(request) {
 
     // Update order status
     order.status = "completed";
-    order.razorpayPaymentId = razorpay_payment_id;
-    order.razorpaySignature = razorpay_signature;
+    order.razorpayPaymentId = paymentIdToUse;
+    order.razorpaySignature = signatureToUse;
     order.paidAt = new Date();
     await order.save();
 
     // Create enrollment
     const enrollment = new Enrollment({
       user: session.user.id,
-      course: courseId,
+      course: order.course, // Use course from order
       enrolledAt: new Date(),
       progress: 0,
       paymentStatus: "completed",

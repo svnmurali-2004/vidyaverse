@@ -8,6 +8,8 @@ import Course from "@/models/course.model";
 import User from "@/models/user.model";
 import Lesson from "@/models/lesson.model";
 import Progress from "@/models/progress.model";
+import Quiz from "@/models/quiz.model";
+import QuizAttempt from "@/models/quizAttempt.model";
 import { v4 as uuidv4 } from "uuid";
 
 // POST /api/certificates/generate - Generate certificate for completed course
@@ -71,20 +73,106 @@ export async function POST(request) {
 
     // Get user's progress for all lessons
     const completedProgress = await Progress.find({
-      user: userId,
-      lesson: { $in: lessons.map(l => l._id) },
-      completed: true
+      userId: userId,
+      lessonId: { $in: lessons.map(l => l._id) },
+      isCompleted: true
     });
 
     const completionPercentage = (completedProgress.length / totalLessons) * 100;
 
-    // Check if course is completed (at least 80% completion required)
-    if (completionPercentage < 80) {
+    // Get required quizzes for this course
+    const requiredQuizzes = await Quiz.find({ 
+      course: courseId, 
+      isActive: true,
+      isRequiredForCertificate: true 
+    }).select('_id title passingScore');
+
+    // Check quiz completion for required quizzes
+    let quizCompletionStatus = {
+      total: requiredQuizzes.length,
+      passed: 0,
+      failed: 0,
+      notAttempted: 0,
+      details: []
+    };
+
+    if (requiredQuizzes.length > 0) {
+      for (const quiz of requiredQuizzes) {
+        // Get user's best attempt for this quiz
+        const bestAttempt = await QuizAttempt.findOne({
+          quiz: quiz._id,
+          user: userId,
+          passed: true
+        }).sort({ percentage: -1 });
+
+        const quizStatus = {
+          quizId: quiz._id,
+          title: quiz.title,
+          passingScore: quiz.passingScore,
+          passed: !!bestAttempt,
+          bestScore: bestAttempt?.percentage || 0
+        };
+
+        if (bestAttempt) {
+          quizCompletionStatus.passed++;
+        } else {
+          // Check if user has any attempts
+          const anyAttempt = await QuizAttempt.findOne({
+            quiz: quiz._id,
+            user: userId
+          });
+          
+          if (anyAttempt) {
+            quizCompletionStatus.failed++;
+          } else {
+            quizCompletionStatus.notAttempted++;
+          }
+        }
+
+        quizCompletionStatus.details.push(quizStatus);
+      }
+    }
+
+    // Calculate overall completion requirements
+    const lessonRequirementMet = completionPercentage >= 80;
+    const quizRequirementMet = requiredQuizzes.length === 0 || quizCompletionStatus.passed === requiredQuizzes.length;
+
+    // Check if both lesson and quiz requirements are met
+    if (!lessonRequirementMet) {
       return NextResponse.json(
         {
           success: false,
-          error: `Course completion required. Current progress: ${completionPercentage.toFixed(1)}%`,
-          currentProgress: completionPercentage
+          error: `Lesson completion required. Current progress: ${completionPercentage.toFixed(1)}%`,
+          currentProgress: completionPercentage,
+          requirements: {
+            lessons: { required: 80, current: completionPercentage, met: false },
+            quizzes: { 
+              required: requiredQuizzes.length, 
+              passed: quizCompletionStatus.passed, 
+              met: quizRequirementMet,
+              details: quizCompletionStatus.details
+            }
+          }
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!quizRequirementMet) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Quiz completion required. You must pass all required quizzes (${quizCompletionStatus.passed}/${requiredQuizzes.length} passed)`,
+          currentProgress: completionPercentage,
+          requirements: {
+            lessons: { required: 80, current: completionPercentage, met: true },
+            quizzes: { 
+              required: requiredQuizzes.length, 
+              passed: quizCompletionStatus.passed, 
+              met: false,
+              details: quizCompletionStatus.details
+            }
+          }
         },
         { status: 400 }
       );
@@ -107,14 +195,22 @@ export async function POST(request) {
     // Get user details
     const user = await User.findById(userId);
 
-    // Calculate final score if available (average of quiz attempts)
+    // Calculate final score including quiz performance
     let finalScore = null;
     try {
-      // This would require quiz attempt data - implement based on your quiz system
-      // For now, we'll set it based on completion percentage
-      finalScore = Math.round(completionPercentage);
+      // Calculate overall score combining lesson completion and quiz performance
+      let combinedScore = completionPercentage;
+      
+      if (requiredQuizzes.length > 0) {
+        const avgQuizScore = quizCompletionStatus.details.reduce((sum, quiz) => sum + quiz.bestScore, 0) / requiredQuizzes.length;
+        // Weight: 70% lesson completion + 30% quiz average
+        combinedScore = Math.round((completionPercentage * 0.7) + (avgQuizScore * 0.3));
+      }
+      
+      finalScore = combinedScore;
     } catch (error) {
       console.log('Could not calculate final score:', error);
+      finalScore = Math.round(completionPercentage);
     }
 
     // Generate certificate
@@ -131,7 +227,14 @@ export async function POST(request) {
     await certificate.save();
     
     // Populate the certificate with related data
-    await certificate.populate('course', 'title thumbnail instructor');
+    await certificate.populate({
+      path: 'course',
+      select: 'title thumbnail instructor',
+      populate: {
+        path: 'instructor',
+        select: 'name email'
+      }
+    });
     await certificate.populate('user', 'name email');
 
     // Update enrollment to mark as completed with certificate
@@ -147,7 +250,12 @@ export async function POST(request) {
         success: true,
         data: certificate,
         message: "Certificate generated successfully",
-        completionPercentage: completionPercentage
+        completionPercentage: completionPercentage,
+        quizRequirements: {
+          total: requiredQuizzes.length,
+          passed: quizCompletionStatus.passed,
+          details: quizCompletionStatus.details
+        }
       },
       { status: 201 }
     );

@@ -40,6 +40,7 @@ export default function CreateQuizPage() {
     passingScore: 70,
     attempts: 3,
     isActive: true,
+    isRequiredForCertificate: false,
     questions: [],
   });
 
@@ -445,6 +446,19 @@ export default function CreateQuizPage() {
               />
               <Label htmlFor="isActive">
                 Active (students can take this quiz)
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isRequiredForCertificate"
+                checked={formData.isRequiredForCertificate}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, isRequiredForCertificate: checked })
+                }
+              />
+              <Label htmlFor="isRequiredForCertificate">
+                Required for Certificate (students must pass this quiz to earn certificate)
               </Label>
             </div>
           </CardContent>

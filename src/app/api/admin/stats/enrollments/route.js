@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Enrollment from "@/models/enrollment.model";
 import Order from "@/models/order.model";
+import Course from "@/models/course.model";
+import User from "@/models/user.model";
 
 export async function GET() {
   try {
