@@ -49,71 +49,36 @@ export default withAuth(
       }
     }
 
-    // Admin route protection
-    if (pathname.startsWith("/admin")) {
-      console.log("🔐 Admin route accessed:", pathname);
+    // Admin API route protection (only for API routes)
+    if (pathname.startsWith("/admin/api")) {
+      console.log("🔐 Admin API route accessed:", pathname);
       if (!token) {
-        console.log("❌ No token found for admin route");
-
-        // For API requests or prefetch, return 401 instead of redirecting
-        if (
-          pathname.startsWith("/admin/api") ||
-          req.headers.get("purpose") === "prefetch"
-        ) {
-          console.log("🚫 Rejecting API/prefetch request with 401");
-          return new NextResponse("Unauthorized", { status: 401 });
-        }
-
-        // For navigation requests, redirect to signin
-        console.log("🔄 Redirecting navigation request to signin");
-        return NextResponse.redirect(new URL("/signin", req.url));
+        console.log("🚫 Rejecting unauthenticated admin API request with 401");
+        return new NextResponse("Unauthorized", { status: 401 });
       }
       if (token.role !== "admin") {
-        console.log("⚠️ Non-admin user accessing admin route");
-
-        // For API requests or prefetch, return 403 instead of redirecting
-        if (
-          pathname.startsWith("/admin/api") ||
-          req.headers.get("purpose") === "prefetch"
-        ) {
-          console.log("🚫 Rejecting API/prefetch request with 403");
-          return new NextResponse("Forbidden", { status: 403 });
-        }
-
-        // For navigation requests, redirect to dashboard
-        console.log("🔄 Redirecting navigation request to dashboard");
-        return NextResponse.redirect(new URL("/dashboard", req.url));
+        console.log("🚫 Rejecting non-admin API request with 403");
+        return new NextResponse("Forbidden", { status: 403 });
       }
-      console.log("✅ Admin access granted for:", pathname);
+      console.log("✅ Admin API access granted for:", pathname);
     }
 
-    // Student route protection
+    // Student API route protection (only for API routes)
     if (
-      pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/courses") ||
-      pathname.startsWith("/profile") ||
-      pathname.startsWith("/certificates") ||
-      pathname.startsWith("/quizzes")
+      pathname.startsWith("/dashboard/api") ||
+      pathname.startsWith("/courses/api") ||
+      pathname.startsWith("/profile/api") ||
+      pathname.startsWith("/certificates/api") ||
+      pathname.startsWith("/quizzes/api")
     ) {
-      console.log("🎓 Student route accessed:", pathname);
+      console.log("🎓 Student API route accessed:", pathname);
       if (!token) {
-        console.log("❌ No token found for student route");
-
-        // For API requests or prefetch, return 401 instead of redirecting
-        if (
-          pathname.includes("/api/") ||
-          req.headers.get("purpose") === "prefetch"
-        ) {
-          console.log("🚫 Rejecting API/prefetch request with 401");
-          return new NextResponse("Unauthorized", { status: 401 });
-        }
-
-        // For navigation requests, redirect to signin
-        console.log("🔄 Redirecting navigation request to signin");
-        return NextResponse.redirect(new URL("/signin", req.url));
+        console.log(
+          "🚫 Rejecting unauthenticated student API request with 401"
+        );
+        return new NextResponse("Unauthorized", { status: 401 });
       }
-      // Admin users can access student routes
-      console.log("✅ Student route access granted for:", pathname);
+      console.log("✅ Student API access granted for:", pathname);
     }
 
     console.log("🚀 Middleware completed, allowing request to proceed");

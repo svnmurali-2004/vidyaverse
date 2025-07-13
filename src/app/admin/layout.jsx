@@ -1,12 +1,36 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { AdminSidebar } from "@/components/sidebar/admin-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AdminLayout({ children }) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect if user is not authenticated or not an admin
+    if (status === "loading") return; // Still loading
+
+    if (!session) {
+      console.log("❌ No session found, redirecting to home");
+      router.push("/");
+      return;
+    }
+
+    if (session.user?.role !== "admin") {
+      console.log(
+        "⚠️ Non-admin user accessing admin area, redirecting to home"
+      );
+      router.push("/");
+      return;
+    }
+
+    console.log("✅ Admin access granted for:", session.user?.email);
+  }, [session, status, router]);
 
   // Show loading state while session is being fetched
   if (status === "loading") {
@@ -17,9 +41,14 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  // Middleware handles all authentication and authorization logic
-  // No need for additional checks here since middleware ensures only
-  // authenticated admin users can reach this layout
+  // Don't render admin content if user is not authenticated or not admin
+  if (!session || session.user?.role !== "admin") {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-lg">Redirecting...</div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider
