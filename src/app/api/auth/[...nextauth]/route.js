@@ -113,8 +113,8 @@ export const authOptions = {
       // If it's the same origin, allow it
       if (new URL(url).origin === baseUrl) return url;
 
-      // For OAuth callbacks, redirect to our custom redirect handler
-      return `${baseUrl}/auth/redirect`;
+      // Default redirect to dashboard (middleware will handle role-based routing)
+      return `${baseUrl}/dashboard`;
     },
   },
 };
