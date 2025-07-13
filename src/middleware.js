@@ -24,7 +24,8 @@ export default withAuth(
 
     // Admin route protection
     if (pathname.startsWith("/admin")) {
-      if (!token) {
+        if (!token) {
+          console.log("redirection from middleware")
         return NextResponse.redirect(new URL("/signin", req.url));
       }
       if (token.role !== "admin") {
