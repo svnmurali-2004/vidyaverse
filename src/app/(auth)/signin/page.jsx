@@ -43,7 +43,7 @@ export function LoginForm({ className, ...props }) {
           try {
             const session = await getSession();
             console.log("Session after sign in:", session);
-            
+
             if (session?.user) {
               if (session.user.role === "admin") {
                 router.push("/admin");
