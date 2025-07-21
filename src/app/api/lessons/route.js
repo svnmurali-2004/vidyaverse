@@ -6,6 +6,7 @@ import Lesson from "@/models/lesson.model";
 import Course from "@/models/course.model";
 import User from "@/models/user.model";
 import Progress from "@/models/progress.model";
+import Enrollment from "@/models/enrollment.model";
 import mongoose from "mongoose";
 
 // GET /api/lessons - Get lessons (with optional course filter)
@@ -13,6 +14,7 @@ export async function GET(request) {
   try {
     await connectDB();
 
+    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get("courseId");
     const page = parseInt(searchParams.get("page") || "1");
@@ -31,6 +33,27 @@ export async function GET(request) {
         );
       }
       filter.course = courseId;
+
+      // **SECURITY FIX**: For non-preview requests, verify enrollment
+      if (session && session.user.role === "student") {
+        const isPreview = searchParams.get("preview") === "true";
+        
+        if (!isPreview) {
+          const enrollment = await Enrollment.findOne({
+            user: session.user.id,
+            course: courseId,
+            status: "active"
+          });
+
+          if (!enrollment) {
+            // If not enrolled, only return preview lessons
+            filter.isPreview = true;
+          }
+        } else {
+          // For preview mode, only show preview lessons
+          filter.isPreview = true;
+        }
+      }
     }
 
     // Temporarily show all lessons for debugging

@@ -136,25 +136,33 @@ export function SignUpForm({ className, ...props }) {
     setIsLoading(true);
 
     try {
+      console.log("Starting OAuth signup with provider:", provider);
+
       const result = await signIn(provider, {
         redirect: false,
+        callbackUrl: "/", // Specify where to go after signin
       });
 
-      if (result?.ok) {
+      console.log("OAuth signup result:", result);
+
+      if (result?.ok && !result?.error) {
         toast.success("Account created successfully!");
-        // Get session to check user role and redirect accordingly
-        const session = await getSession();
-        if (session?.user?.role === "admin") {
-          router.push("/admin");
-        } else {
+        console.log("OAuth signup successful, redirecting to dashboard");
+        // Small delay to ensure session is established
+        setTimeout(() => {
           router.push("/dashboard");
-        }
+        }, 500);
       } else if (result?.error) {
-        toast.error("Failed to sign up");
-        setIsLoading(false);
+        console.error("OAuth signup error:", result.error);
+        toast.error(`Failed to sign up: ${result.error}`);
+      } else {
+        console.log("OAuth signup - unexpected result:", result);
+        toast.error("Something went wrong during signup");
       }
     } catch (err) {
+      console.error("OAuth signup exception:", err);
       toast.error(`Failed to sign up with ${provider}`);
+    } finally {
       setIsLoading(false);
     }
   };

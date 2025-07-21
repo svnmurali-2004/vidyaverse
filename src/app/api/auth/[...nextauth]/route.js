@@ -14,8 +14,8 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     GitHubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -73,23 +73,30 @@ export const authOptions = {
       ) {
         await db();
         const existingUser = await User.findOne({ email: user.email });
-        console.log("Existing user:", existingUser);
+        console.log("OAuth flow - Existing user:", existingUser);
+
         if (!existingUser) {
+          console.log("Creating new OAuth user");
           const newUser = await User.create({
             email: user.email,
             name: user.name,
             avatar: user.image,
             role: "student",
+            isVerified: true, // OAuth users are automatically verified
           });
+          console.log("New OAuth user created:", newUser._id);
           token.id = newUser._id.toString();
-          token.id = user.id;
-          token.role = user.role;
-          token.name = user.name;
-          token.email = user.email;
-          token.avatar = user.avatar;
+          token.role = newUser.role;
+          token.name = newUser.name;
+          token.email = newUser.email;
+          token.avatar = newUser.avatar;
         } else {
+          console.log("Using existing OAuth user");
           token.id = existingUser._id.toString();
           token.role = existingUser.role;
+          token.name = existingUser.name;
+          token.email = existingUser.email;
+          token.avatar = existingUser.avatar;
         }
       }
       return token;
@@ -113,8 +120,13 @@ export const authOptions = {
       // If it's the same origin, allow it
       if (new URL(url).origin === baseUrl) return url;
 
-      // Default redirect to root (middleware will handle role-based routing)
-      return baseUrl;
+      // For OAuth signin from signup page, redirect to dashboard
+      if (url.includes("/signup") || url.includes("callbackUrl")) {
+        return `${baseUrl}/dashboard`;
+      }
+
+      // Default redirect to dashboard (middleware will handle role-based routing)
+      return `${baseUrl}/dashboard`;
     },
   },
 };

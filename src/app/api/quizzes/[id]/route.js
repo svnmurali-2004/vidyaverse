@@ -7,6 +7,7 @@ import QuizAttempt from "@/models/quizAttempt.model";
 import Course from "@/models/course.model";
 import Lesson from "@/models/lesson.model";
 import User from "@/models/user.model";
+import Enrollment from "@/models/enrollment.model";
 
 export async function GET(request, { params }) {
   try {
@@ -26,6 +27,24 @@ export async function GET(request, { params }) {
 
     if (!quiz) {
       return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+    }
+
+    // **SECURITY FIX**: Verify enrollment before showing quiz details
+    if (session.user.role === "student") {
+      const enrollment = await Enrollment.findOne({
+        user: session.user.id,
+        course: quiz.course._id,
+        status: "active",
+      });
+
+      if (!enrollment) {
+        return NextResponse.json(
+          {
+            error: "You must be enrolled in this course to access this quiz",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // For admin users editing quiz, return full quiz data

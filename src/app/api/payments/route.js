@@ -98,8 +98,10 @@ export async function POST(request) {
         return NextResponse.json({ error: "Order not found" }, { status: 404 });
       }
 
-      order.status = "paid";
-      order.paymentId = razorpay_payment_id;
+      order.status = "completed";
+      order.razorpayPaymentId = razorpay_payment_id;
+      order.razorpaySignature = razorpay_signature;
+      order.paidAt = new Date();
       await order.save();
 
       // Create enrollment

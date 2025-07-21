@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Quiz from "@/models/quiz.model";
 import QuizAttempt from "@/models/quizAttempt.model";
+import Enrollment from "@/models/enrollment.model";
 
 export async function POST(request, { params }) {
   try {
@@ -29,6 +30,24 @@ export async function POST(request, { params }) {
     const quiz = await Quiz.findById(id);
     if (!quiz) {
       return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+    }
+
+    // **SECURITY FIX**: Verify enrollment before allowing quiz submission
+    if (session.user.role === "student") {
+      const enrollment = await Enrollment.findOne({
+        user: session.user.id,
+        course: quiz.course,
+        status: "active",
+      });
+
+      if (!enrollment) {
+        return NextResponse.json(
+          {
+            error: "You must be enrolled in this course to submit quizzes",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Check if user has exceeded attempt limit

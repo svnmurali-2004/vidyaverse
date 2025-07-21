@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -23,7 +29,7 @@ import {
   Award,
   Target,
   Lightbulb,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
 
 export default function Home() {
@@ -33,38 +39,38 @@ export default function Home() {
     totalCourses: 0,
     totalStudents: 0,
     totalInstructors: 0,
-    totalHours: 0
+    totalHours: 0,
   });
 
   useEffect(() => {
     // Fetch featured courses
     const fetchFeaturedCourses = async () => {
       try {
-        const response = await fetch('/api/courses?featured=true&limit=6');
+        const response = await fetch("/api/courses?featured=true&limit=6");
         if (response.ok) {
           const data = await response.json();
           setFeaturedCourses(data.data || []);
         }
       } catch (error) {
-        console.error('Error fetching featured courses:', error);
+        console.error("Error fetching featured courses:", error);
       }
     };
 
     fetchFeaturedCourses();
-    
+
     // Set mock stats (you can replace with real API calls)
     setStats({
       totalCourses: 500,
       totalStudents: 25000,
       totalInstructors: 150,
-      totalHours: 10000
+      totalHours: 10000,
     });
   }, []);
 
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -80,32 +86,43 @@ export default function Home() {
                   <span className="text-yellow-300">VidyaVerse</span>
                 </h1>
                 <p className="text-xl text-blue-100 leading-relaxed">
-                  Transform your career with our expert-led courses. From programming to design, 
-                  business to marketing - unlock your potential with world-class education.
+                  Transform your career with our expert-led courses. From
+                  programming to design, business to marketing - unlock your
+                  potential with world-class education.
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4">
                 {session ? (
-                  <Link href={session.user.role === 'admin' ? '/admin' : '/dashboard'}>
-                    <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg">
-                      Go to Dashboard
+                  <Link
+                    href={session.user.role === "admin" ? "/admin" : "/courses"}
+                  >
+                    <Button
+                      size="lg"
+                      className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg w-full sm:w-auto"
+                    >
+                      {session.user.role === "admin"
+                        ? "Go to Admin Panel"
+                        : "Go to My Courses"}
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
                 ) : (
                   <>
                     <Link href="/signup">
-                      <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg">
+                      <Button
+                        size="lg"
+                        className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg w-full sm:w-auto"
+                      >
                         Start Learning Free
                         <Play className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
                     <Link href="/courses">
-                      <Button 
-                        size="lg" 
-                        variant="outline" 
-                        className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 text-lg"
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 text-lg w-full sm:w-auto"
                       >
                         Browse Courses
                       </Button>
@@ -181,7 +198,8 @@ export default function Home() {
               Why Choose VidyaVerse?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We provide the best learning experience with cutting-edge technology and expert instructors
+              We provide the best learning experience with cutting-edge
+              technology and expert instructors
             </p>
           </div>
 
@@ -193,7 +211,8 @@ export default function Home() {
                 </div>
                 <CardTitle>Expert-Led Courses</CardTitle>
                 <CardDescription>
-                  Learn from industry professionals with years of real-world experience
+                  Learn from industry professionals with years of real-world
+                  experience
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -205,7 +224,8 @@ export default function Home() {
                 </div>
                 <CardTitle>Learn Anywhere</CardTitle>
                 <CardDescription>
-                  Access your courses from any device, anytime, anywhere in the world
+                  Access your courses from any device, anytime, anywhere in the
+                  world
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -217,7 +237,8 @@ export default function Home() {
                 </div>
                 <CardTitle>Certificates</CardTitle>
                 <CardDescription>
-                  Earn verified certificates upon course completion to showcase your skills
+                  Earn verified certificates upon course completion to showcase
+                  your skills
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -229,7 +250,8 @@ export default function Home() {
                 </div>
                 <CardTitle>Interactive Learning</CardTitle>
                 <CardDescription>
-                  Engage with quizzes, projects, and hands-on exercises for better retention
+                  Engage with quizzes, projects, and hands-on exercises for
+                  better retention
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -241,7 +263,8 @@ export default function Home() {
                 </div>
                 <CardTitle>Community Support</CardTitle>
                 <CardDescription>
-                  Join a vibrant community of learners and get help when you need it
+                  Join a vibrant community of learners and get help when you
+                  need it
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -253,7 +276,8 @@ export default function Home() {
                 </div>
                 <CardTitle>Track Progress</CardTitle>
                 <CardDescription>
-                  Monitor your learning journey with detailed analytics and progress tracking
+                  Monitor your learning journey with detailed analytics and
+                  progress tracking
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -269,14 +293,18 @@ export default function Home() {
               Featured Courses
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover our most popular courses that have helped thousands of students achieve their goals
+              Discover our most popular courses that have helped thousands of
+              students achieve their goals
             </p>
           </div>
 
           {featuredCourses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredCourses.map((course) => (
-                <Card key={course._id} className="border-0 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+                <Card
+                  key={course._id}
+                  className="border-0 shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
+                >
                   <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                     <BookOpen className="h-12 w-12 text-white opacity-80" />
                   </div>
@@ -288,7 +316,9 @@ export default function Home() {
                         <span className="text-sm text-gray-600">4.8</span>
                       </div>
                     </div>
-                    <CardTitle className="line-clamp-2">{course.title}</CardTitle>
+                    <CardTitle className="line-clamp-2">
+                      {course.title}
+                    </CardTitle>
                     <CardDescription className="line-clamp-3">
                       {course.description}
                     </CardDescription>
@@ -306,7 +336,7 @@ export default function Home() {
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-2xl font-bold text-blue-600">
-                        {course.price > 0 ? `$${course.price}` : 'Free'}
+                        {course.price > 0 ? `$${course.price}` : "Free"}
                       </div>
                       <Link href={`/courses/${course._id}`}>
                         <Button>View Course</Button>
@@ -319,8 +349,12 @@ export default function Home() {
           ) : (
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Featured Courses Yet</h3>
-              <p className="text-gray-500">Check back soon for amazing courses!</p>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No Featured Courses Yet
+              </h3>
+              <p className="text-gray-500">
+                Check back soon for amazing courses!
+              </p>
             </div>
           )}
 
@@ -342,22 +376,25 @@ export default function Home() {
             Ready to Start Your Learning Journey?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of students who have transformed their careers with VidyaVerse. 
-            Start learning today and unlock your potential.
+            Join thousands of students who have transformed their careers with
+            VidyaVerse. Start learning today and unlock your potential.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {!session ? (
               <>
                 <Link href="/signup">
-                  <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg">
+                  <Button
+                    size="lg"
+                    className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg"
+                  >
                     Get Started Free
                     <Play className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link href="/signin">
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
+                  <Button
+                    size="lg"
+                    variant="outline"
                     className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 text-lg"
                   >
                     Sign In
@@ -365,8 +402,13 @@ export default function Home() {
                 </Link>
               </>
             ) : (
-              <Link href={session.user.role === 'admin' ? '/admin' : '/dashboard'}>
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg">
+              <Link
+                href={session.user.role === "admin" ? "/admin" : "/dashboard"}
+              >
+                <Button
+                  size="lg"
+                  className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg"
+                >
                   Continue Learning
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

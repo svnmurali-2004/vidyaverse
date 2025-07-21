@@ -7,6 +7,7 @@ import QuizAttempt from "@/models/quizAttempt.model";
 import Course from "@/models/course.model";
 import Lesson from "@/models/lesson.model";
 import User from "@/models/user.model";
+import Enrollment from "@/models/enrollment.model";
 
 export async function GET(request) {
   try {
@@ -23,11 +24,29 @@ export async function GET(request) {
 
     await connectDB();
 
+    // **SECURITY FIX**: Verify enrollment before showing quizzes
+    if (courseId && session.user.role === "student") {
+      const enrollment = await Enrollment.findOne({
+        user: session.user.id,
+        course: courseId,
+        status: "active",
+      });
+
+      if (!enrollment) {
+        return NextResponse.json(
+          {
+            error: "You must be enrolled in this course to access quizzes",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     const filter = { isActive: true };
     if (courseId) filter.course = courseId;
     if (lessonId) filter.lesson = lessonId;
 
-    // For students, only show published quizzes
+    // For students, only show published quizzes from enrolled courses
     if (session.user.role === "student") {
       filter.isActive = true;
     }

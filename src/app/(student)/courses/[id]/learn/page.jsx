@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoPlayer from "@/components/VideoPlayer";
 import QuizTaker from "@/components/QuizTaker";
+import DsaSheet from "@/components/DsaSheet";
 import {
   Play,
   Clock,
@@ -72,6 +73,19 @@ export default function LearnPage({ params }) {
       }
     }
   }, [courseId, session, searchParams]);
+
+  // Debug useEffect to track currentLesson changes
+  useEffect(() => {
+    console.log("🔄 Current lesson changed:", currentLesson);
+    if (currentLesson) {
+      console.log("📝 Lesson details:", {
+        id: currentLesson._id,
+        type: currentLesson.type,
+        title: currentLesson.title,
+        hasdsaSheet: !!currentLesson.dsaSheet
+      });
+    }
+  }, [currentLesson]);
 
   const fetchCourse = async () => {
     try {
@@ -953,10 +967,12 @@ export default function LearnPage({ params }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col min-h-0">
-          {/* Video Player */}
-          <div className="bg-black flex-shrink-0">
-            {renderVideoPlayer()}
-          </div>
+          {/* Video Player - Only show for video lessons */}
+          {currentLesson?.type === "video" && (
+            <div className="bg-black flex-shrink-0">
+              {renderVideoPlayer()}
+            </div>
+          )}
 
           {/* Lesson Content */}
           <div className="flex-1 overflow-auto">
@@ -1028,9 +1044,30 @@ export default function LearnPage({ params }) {
                     <TabsContent value="content">
                       <Card>
                         <CardContent className="p-6">
+                          {/* Debug Section */}
+                          <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded">
+                            <h3 className="font-bold text-purple-800 mb-2">🔍 Debug Information</h3>
+                            <div className="text-sm space-y-1">
+                              <p><strong>Current Lesson Exists:</strong> {currentLesson ? 'Yes' : 'No'}</p>
+                              <p><strong>Lesson Type:</strong> {currentLesson?.type || 'undefined'}</p>
+                              <p><strong>Lesson ID:</strong> {currentLesson?._id || 'undefined'}</p>
+                              <p><strong>Is DSA Type:</strong> {currentLesson?.type === "dsa" ? 'Yes' : 'No'}</p>
+                              <p><strong>Has dsaSheet:</strong> {currentLesson?.dsaSheet ? 'Yes' : 'No'}</p>
+                              {currentLesson && (
+                                <details className="mt-2">
+                                  <summary className="cursor-pointer font-medium">Raw Lesson Data</summary>
+                                  <pre className="mt-2 text-xs bg-white p-2 rounded border overflow-auto max-h-40">
+                                    {JSON.stringify(currentLesson, null, 2)}
+                                  </pre>
+                                </details>
+                              )}
+                            </div>
+                          </div>
+
                           {console.log("Current lesson:", currentLesson)}
                           {console.log("Lesson type:", currentLesson?.type)}
                           {console.log("Quiz data:", currentLesson?.quiz)}
+                          {console.log("🚀 Learn page rendering...")}
                           {currentLesson.type === "quiz" && currentLesson.quiz?.questions?.length > 0 ? (
                             <div className="space-y-6">
                               <div className="text-center">
@@ -1183,6 +1220,29 @@ export default function LearnPage({ params }) {
                                             Duration: {currentLesson.duration} minutes
                                           </div>
                                         )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* DSA Sheet lesson content */}
+                                  {currentLesson.type === "dsa" && (
+                                    <div className="space-y-4">
+                                      <div className="bg-green-50 border-2 border-green-200 p-4 rounded-lg">
+                                        <h3 className="text-lg font-semibold text-green-800 mb-2">🚀 DSA Sheet Component Loading...</h3>
+                                        <p className="text-green-700">Lesson type: {currentLesson.type}</p>
+                                        <p className="text-green-700">DSA Sheet exists: {currentLesson.dsaSheet ? 'Yes' : 'No'}</p>
+                                        <p className="text-green-700">About to render DsaSheet component...</p>
+                                      </div>
+                                      {console.log("🔥 About to render DsaSheet with lesson:", currentLesson)}
+                                      <DsaSheet 
+                                        lesson={currentLesson}
+                                        onProgressUpdate={(completed, total) => {
+                                          console.log(`DSA Progress: ${completed}/${total}`);
+                                        }}
+                                      />
+                                      <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-lg">
+                                        <h3 className="text-lg font-semibold text-blue-800 mb-2">✅ DSA Sheet Component Rendered</h3>
+                                        <p className="text-blue-700">If you can see this, the DsaSheet component was called successfully.</p>
                                       </div>
                                     </div>
                                   )}
