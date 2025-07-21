@@ -51,105 +51,95 @@ export default function CourseDetailPage({ params }) {
   const [wishlist, setWishlist] = useState(false);
 
   useEffect(() => {
-    if (courseId) {
-      fetchCourse();
-      fetchLessons();
-      fetchRelatedCourses();
-      fetchReviews();
-      if (session) {
-        checkEnrollment();
-        checkWishlist();
-      }
-    }
-  }, [courseId, session]);
+    if (!courseId) return;
 
-  const fetchCourse = async () => {
-    try {
-      const response = await fetch(
-        `/api/courses/${courseId}?includeDetails=true`
-      );
+    setLoading(true);
+
+    // Fetch all main data in parallel
+    const coursePromise = fetch(`/api/courses/${courseId}?includeDetails=true`).then(async (response) => {
       if (response.ok) {
         const data = await response.json();
         setCourse(data.data);
+        return data.data;
       } else {
         toast.error("Course not found");
         router.push("/student/courses");
+        return null;
       }
-    } catch (error) {
+    }).catch((error) => {
       console.error("Error fetching course:", error);
       toast.error("Failed to load course");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return null;
+    });
 
-  const fetchLessons = async () => {
-    try {
-      const response = await fetch(`/api/lessons?courseId=${courseId}`);
+    const lessonsPromise = fetch(`/api/lessons?courseId=${courseId}`).then(async (response) => {
       if (response.ok) {
         const data = await response.json();
         setLessons(data.data || []);
       }
-    } catch (error) {
+    }).catch((error) => {
       console.error("Error fetching lessons:", error);
-    }
-  };
+    });
 
-  const fetchRelatedCourses = async () => {
-    try {
-      const response = await fetch(
-        `/api/courses?limit=4&category=${course?.category}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setRelatedCourses(data.data?.filter((c) => c._id !== courseId) || []);
-      }
-    } catch (error) {
-      console.error("Error fetching related courses:", error);
-    }
-  };
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch(`/api/reviews?courseId=${courseId}`);
+    const reviewsPromise = fetch(`/api/reviews?courseId=${courseId}`).then(async (response) => {
       if (response.ok) {
         const data = await response.json();
         setReviews(data.data || []);
       }
-    } catch (error) {
+    }).catch((error) => {
       console.error("Error fetching reviews:", error);
-    }
-  };
+    });
 
-  const checkEnrollment = async () => {
-    try {
-      const response = await fetch(`/api/enrollments?courseId=${courseId}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data && data.data.length > 0) {
-          setIsEnrolled(true);
-          setEnrollmentId(data.data[0]._id);
-        }
-      }
-    } catch (error) {
-      console.error("Error checking enrollment:", error);
-    }
-  };
+    // Related courses depend on course category, so wait for course fetch
+    coursePromise.then((courseData) => {
+      if (!courseData) return;
+      fetch(`/api/courses?limit=4&category=${courseData.category}`)
+        .then(async (response) => {
+          if (response.ok) {
+            const data = await response.json();
+            setRelatedCourses(data.data?.filter((c) => c._id !== courseId) || []);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching related courses:", error);
+        });
+    });
 
-  const checkWishlist = async () => {
-    try {
-      const response = await fetch("/api/wishlist");
-      if (response.ok) {
-        const data = await response.json();
-        const isInWishlist = data.data?.some(
-          (item) => item.course._id === courseId
-        );
-        setWishlist(isInWishlist);
-      }
-    } catch (error) {
-      console.error("Error checking wishlist:", error);
+    // Enrollment and wishlist (if logged in)
+    if (session) {
+      fetch(`/api/enrollments?courseId=${courseId}`)
+        .then(async (response) => {
+          if (response.ok) {
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+              setIsEnrolled(true);
+              setEnrollmentId(data.data[0]._id);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error checking enrollment:", error);
+        });
+
+      fetch("/api/wishlist")
+        .then(async (response) => {
+          if (response.ok) {
+            const data = await response.json();
+            const isInWishlist = data.data?.some((item) => item.course._id === courseId);
+            setWishlist(isInWishlist);
+          }
+        })
+        .catch((error) => {
+          console.error("Error checking wishlist:", error);
+        });
     }
-  };
+
+    // Wait for main data, then set loading false
+    Promise.all([coursePromise, lessonsPromise, reviewsPromise]).finally(() => {
+      setLoading(false);
+    });
+  }, [courseId, session]);
+
 
   const handleEnroll = async () => {
     if (!session) {

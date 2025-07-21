@@ -98,7 +98,7 @@ export async function POST(request) {
         return NextResponse.json({ error: "Order not found" }, { status: 404 });
       }
 
-      order.status = "paid";
+      order.status = "completed";
       order.paymentId = razorpay_payment_id;
       await order.save();
 

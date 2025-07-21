@@ -14,8 +14,8 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     GitHubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -59,38 +59,35 @@ export const authOptions = {
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      if (user) {
+      // For credentials login, set token fields from user
+      if (user && !account) {
         token.id = user.id;
         token.role = user.role;
         token.name = user.name;
         token.email = user.email;
         token.avatar = user.avatar;
       }
-      // For OAuth providers, create user in database if not exists
+      // For OAuth providers, create user in database if not exists, and always set token fields from DB user
       if (
         account &&
         (account.provider === "google" || account.provider === "github")
       ) {
         await db();
-        const existingUser = await User.findOne({ email: user.email });
-        console.log("Existing user:", existingUser);
-        if (!existingUser) {
-          const newUser = await User.create({
+        let dbUser = await User.findOne({ email: user.email });
+        if (!dbUser) {
+          dbUser = await User.create({
             email: user.email,
             name: user.name,
             avatar: user.image,
             role: "student",
+            provider: account.provider,
           });
-          token.id = newUser._id.toString();
-          token.id = user.id;
-          token.role = user.role;
-          token.name = user.name;
-          token.email = user.email;
-          token.avatar = user.avatar;
-        } else {
-          token.id = existingUser._id.toString();
-          token.role = existingUser.role;
         }
+        token.id = dbUser._id.toString();
+        token.role = dbUser.role;
+        token.name = dbUser.name;
+        token.email = dbUser.email;
+        token.avatar = dbUser.avatar;
       }
       return token;
     },
