@@ -105,7 +105,7 @@ export default function Home() {
                       <Button 
                         size="lg" 
                         variant="outline" 
-                        className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 text-lg"
+                        className="border-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 px-8 py-3 text-lg"
                       >
                         Browse Courses
                       </Button>
@@ -358,7 +358,7 @@ export default function Home() {
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 text-lg"
+                    className="bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-800 px-8 py-3 text-lg"
                   >
                     Sign In
                   </Button>
