@@ -150,7 +150,7 @@ export default function CourseDetailPage({ params }) {
 
     if (course.price > 0) {
       // Redirect to checkout for paid courses
-      router.push(`/student/courses/${courseId}/checkout`);
+      router.push(`/courses/${courseId}/checkout`);
       return;
     }
 
@@ -515,7 +515,7 @@ export default function CourseDetailPage({ params }) {
                       {lesson.isPreview ? (
                         <Button asChild variant="outline" size="sm">
                           <Link
-                            href={`/student/courses/${courseId}/learn?lesson=${lesson._id}&preview=true`}
+                            href={`/courses/${courseId}/learn?lesson=${lesson._id}&preview=true`}
                           >
                             <Play className="h-4 w-4 mr-1" />
                             Preview
@@ -524,7 +524,7 @@ export default function CourseDetailPage({ params }) {
                       ) : isEnrolled ? (
                         <Button asChild variant="outline" size="sm">
                           <Link
-                            href={`/student/courses/${courseId}/learn?lesson=${lesson._id}`}
+                            href={`/courses/${courseId}/learn?lesson=${lesson._id}`}
                           >
                             <Play className="h-4 w-4 mr-1" />
                             Watch

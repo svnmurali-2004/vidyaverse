@@ -118,8 +118,13 @@ export const authOptions = {
       // If it's the same origin, allow it
       if (new URL(url).origin === baseUrl) return url;
 
-      // Default redirect to root (middleware will handle role-based routing)
-      return baseUrl;
+      // For OAuth signin from signup page, redirect to dashboard
+      if (url.includes("/signup") || url.includes("callbackUrl")) {
+        return `${baseUrl}/dashboard`;
+      }
+
+      // Default redirect to dashboard (middleware will handle role-based routing)
+      return `${baseUrl}/dashboard`;
     },
   },
 };

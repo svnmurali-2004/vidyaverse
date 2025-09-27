@@ -18,7 +18,7 @@ const lessonSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["text", "video", "quiz"],
+      enum: ["text", "video", "quiz", "dsa"],
       default: "text",
     },
     videoUrl: {
@@ -73,6 +73,39 @@ const lessonSchema = new mongoose.Schema(
         type: Number,
         default: 70,
       },
+    },
+    dsaSheet: {
+      categories: [
+        {
+          title: {
+            type: String,
+            required: true,
+          },
+          description: String,
+          problems: [
+            {
+              id: {
+                type: String,
+                required: true,
+              },
+              title: {
+                type: String,
+                required: true,
+              },
+              difficulty: {
+                type: String,
+                enum: ["Easy", "Medium", "Hard"],
+                required: true,
+              },
+              topic: String,
+              leetcodeUrl: String,
+              solutionUrl: String,
+              companies: [String],
+              notes: String,
+            },
+          ],
+        },
+      ],
     },
     isPublished: {
       type: Boolean,
