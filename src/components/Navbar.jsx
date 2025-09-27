@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import MobileSidebar from "./MobileSidebar";
 import {
   GraduationCap,
   Menu,
@@ -41,29 +42,28 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-sm border-b">
+    <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Logo */}
+        <div className="relative flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <GraduationCap className="h-7 w-7 md:h-8 md:w-8 text-primary" />
-              <span className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
+            <Link href="/" className="flex-shrink-0 flex items-center">
+              <GraduationCap className="h-8 w-8 text-primary" />
+              <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
                 VidyaVerse
               </span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
+          <div className="hidden lg:flex lg:items-center lg:space-x-4">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
+                className={`px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md ${
                   pathname === item.href
-                    ? "text-primary"
-                    : "text-gray-600 dark:text-gray-300"
+                    ? "text-primary bg-primary/10"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                 }`}
               >
                 {item.name}
@@ -71,34 +71,48 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Desktop User Section */}
+          <div className="hidden lg:flex lg:items-center lg:space-x-4">
             {session ? (
               <>
-                {/* Hide dashboard/admin buttons on mobile, show in dropdown instead */}
-                <div className="hidden md:flex items-center space-x-2">
-                  <Button variant="ghost" size="sm" asChild>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary"
+                    asChild
+                  >
                     <Link href="/dashboard">
                       <LayoutDashboard className="h-4 w-4 mr-2" />
-                      <span className="hidden lg:inline">Dashboard</span>
-                      <span className="lg:hidden">Dashboard</span>
+                      <span className="hidden xl:inline">Dashboard</span>
+                      <span className="xl:hidden">📊</span>
                     </Link>
                   </Button>
 
-                  <Button variant="ghost" size="sm" asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40"
+                    asChild
+                  >
                     <Link href="/courses">
                       <BookOpen className="h-4 w-4 mr-2" />
-                      <span className="hidden lg:inline">My Courses</span>
-                      <span className="lg:hidden">Courses</span>
+                      <span className="hidden xl:inline">My Courses</span>
+                      <span className="xl:hidden">📚</span>
                     </Link>
                   </Button>
 
                   {session.user.role === "admin" && (
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center space-x-2 px-3 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400 dark:hover:bg-orange-900/40"
+                      asChild
+                    >
                       <Link href="/admin">
                         <Settings className="h-4 w-4 mr-2" />
-                        <span className="hidden lg:inline">Admin Panel</span>
-                        <span className="lg:hidden">Admin</span>
+                        <span className="hidden xl:inline">Admin Panel</span>
+                        <span className="xl:hidden">Admin</span>
                       </Link>
                     </Button>
                   )}
@@ -119,142 +133,7 @@ export default function Navbar() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <div className="flex flex-col space-y-1 p-2">
-                      <p className="text-sm font-medium">{session.user.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {session.user.email}
-                      </p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard">
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/courses">
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        My Courses
-                      </Link>
-                    </DropdownMenuItem>
-                    {session.user.role === "admin" && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Admin Panel
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">
-                        <User className="mr-2 h-4 w-4" />
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/certificates">
-                        <Award className="mr-2 h-4 w-4" />
-                        My Certificates
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            ) : (
-              <div className="hidden md:flex items-center space-x-2">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/signin">Sign In</Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link href="/signup">Sign Up</Link>
-                </Button>
-              </div>
-            )}
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="h-10 w-10 border border-gray-200 dark:border-gray-700"
-                aria-label="Toggle mobile menu"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t bg-white dark:bg-gray-900 shadow-lg">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`block px-3 py-2 text-base font-medium transition-colors hover:text-primary rounded-md ${
-                    pathname === item.href
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Dashboard/Courses link for authenticated users - prominent placement */}
-              {session && (
-                <div className="border-t pt-3 mt-3">
-                  <Link
-                    href="/dashboard"
-                    className="flex items-center px-3 py-3 text-base font-medium bg-primary/10 text-primary hover:bg-primary/20 rounded-md mx-1 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <LayoutDashboard className="mr-3 h-5 w-5" />� My Dashboard
-                  </Link>
-                  <Link
-                    href="/courses"
-                    className="flex items-center px-3 py-3 mt-2 text-base font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md mx-1 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <BookOpen className="mr-3 h-5 w-5" />
-                    📚 My Courses
-                  </Link>
-                  {session.user.role === "admin" && (
-                    <Link
-                      href="/admin"
-                      className="flex items-center px-3 py-3 mt-2 text-base font-medium bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-md mx-1 transition-colors"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Settings className="mr-3 h-5 w-5" />
-                      ⚙️ Admin Panel
-                    </Link>
-                  )}
-                </div>
-              )}
-
-              {session ? (
-                <div className="px-3 py-2 space-y-2 border-t mt-4 pt-4">
-                  <div className="flex items-center space-x-3 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-white text-lg font-semibold">
-                        {session.user.name?.charAt(0)?.toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
+                    <div className="px-2 py-1.5">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {session.user.name}
                       </p>
@@ -265,59 +144,76 @@ export default function Navbar() {
                         {session.user.role}
                       </p>
                     </div>
-                  </div>
-
-                  <Link
-                    href="/profile"
-                    className="flex items-center px-3 py-2 text-base font-medium text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <User className="mr-3 h-5 w-5" />
-                    Profile Settings
-                  </Link>
-
-                  <Link
-                    href="/certificates"
-                    className="flex items-center px-3 py-2 text-base font-medium text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Award className="mr-3 h-5 w-5" />
-                    My Certificates
-                  </Link>
-
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="flex items-center w-full px-3 py-2 text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                  >
-                    <LogOut className="mr-3 h-5 w-5" />
-                    Sign Out
-                  </button>
-                </div>
-              ) : (
-                <div className="px-3 py-2 space-y-2 border-t mt-4 pt-4">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    asChild
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Link href="/signin">Sign In</Link>
-                  </Button>
-                  <Button
-                    className="w-full"
-                    asChild
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Link href="/signup">Sign Up</Link>
-                  </Button>
-                </div>
-              )}
-            </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/profile"
+                        className="flex items-center cursor-pointer"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        Profile Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/certificates"
+                        className="flex items-center cursor-pointer"
+                      >
+                        <Award className="mr-2 h-4 w-4" />
+                        My Certificates
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="text-red-600 dark:text-red-400 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" asChild>
+                  <Link href="/signin">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup">Sign Up</Link>
+                </Button>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Mobile menu button */}
+          <div className="lg:hidden flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-600 dark:text-gray-300 hover:text-primary transition-all duration-200"
+            >
+              <div className="relative w-5 h-5">
+                <Menu className={`absolute inset-0 h-5 w-5 transition-all duration-300 ${
+                  isMobileMenuOpen ? 'opacity-0 rotate-180 scale-75' : 'opacity-100 rotate-0 scale-100'
+                }`} />
+                <X className={`absolute inset-0 h-5 w-5 transition-all duration-300 ${
+                  isMobileMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-180 scale-75'
+                }`} />
+              </div>
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Sidebar */}
+        <MobileSidebar
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+          session={session}
+          navigation={navigation}
+          handleSignOut={handleSignOut}
+        />
       </div>
     </nav>
   );
