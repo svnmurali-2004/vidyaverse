@@ -67,7 +67,25 @@ const LessonContent = ({
         )}
       </div>
 
-      {/* Lesson Content Tabs - Video should ONLY be inside Content tab */}
+      {/* Video Player - Outside tabs for better mobile experience */}
+      {currentLesson.type === "video" && currentLesson.videoUrl && (
+        <div className="w-full -mx-3 sm:mx-0">
+          <div className="w-full aspect-[16/11] sm:aspect-video bg-black rounded-none sm:rounded-lg overflow-hidden shadow-lg">
+            <VideoPlayer
+              videoUrl={currentLesson.videoUrl}
+              title={currentLesson.title}
+              className="w-full h-full"
+              onEnded={() => {
+                if (!isPreviewMode && !isCompleted) {
+                  markLessonComplete(currentLesson._id);
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Lesson Content Tabs */}
       <Tabs defaultValue="content" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="content">Content</TabsTrigger>
@@ -78,35 +96,20 @@ const LessonContent = ({
         <TabsContent value="content">
           <Card>
             <CardContent className="p-6">
-              {currentLesson.type === "video" && currentLesson.videoUrl && (
-                <div className="space-y-4">
-                  <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
-                    <VideoPlayer
-                      videoUrl={currentLesson.videoUrl}
-                      title={currentLesson.title}
-                      className="w-full h-full"
-                      onEnded={() => {
-                        if (!isPreviewMode && !isCompleted) {
-                          markLessonComplete(currentLesson._id);
-                        }
-                      }}
-                    />
-                  </div>
-                  
-                  {currentLesson.content && (
-                    <div className="mt-6">
-                      <h3 className="text-lg font-semibold mb-3">
-                        Additional Notes
-                      </h3>
-                      <div 
-                        className="prose max-w-none dark:prose-invert"
-                        dangerouslySetInnerHTML={{ __html: currentLesson.content }}
-                      />
-                    </div>
-                  )}
+              {/* Additional Notes for Video Lessons */}
+              {currentLesson.type === "video" && currentLesson.content && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Additional Notes
+                  </h3>
+                  <div 
+                    className="prose max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: currentLesson.content }}
+                  />
                 </div>
               )}
 
+              {/* Text Lesson Content */}
               {currentLesson.type === "text" && (
                 <div className="space-y-4">
                   {currentLesson.content ? (
@@ -132,8 +135,21 @@ const LessonContent = ({
                 </div>
               )}
 
-              {/* Default fallback */}
-              {!currentLesson.content && !currentLesson.description && (
+              {/* Default fallback for lessons without content */}
+              {currentLesson.type === "video" && !currentLesson.content && (
+                <div className="text-center py-12">
+                  <BookOpen className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    Video Lesson
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Watch the video above to learn about this topic.
+                  </p>
+                </div>
+              )}
+
+              {/* Default fallback for other lesson types */}
+              {!["video", "text"].includes(currentLesson.type) && !currentLesson.content && !currentLesson.description && (
                 <div className="text-center py-12">
                   <BookOpen className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">

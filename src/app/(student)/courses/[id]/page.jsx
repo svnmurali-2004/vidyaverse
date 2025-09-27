@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -288,32 +289,33 @@ export default function CourseDetailPage({ params }) {
             </div>
           </div>
 
-          <div className="relative">
-            <img
-              src={course.thumbnail || "/placeholder-course.jpg"}
-              alt={course.title}
-              className="w-full h-96 object-cover rounded-lg"
-            />
-            {!isEnrolled && lessons.length > 0 && lessons[0].isPreview && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-white text-black hover:bg-gray-100"
-                >
-                  <Link
-                    href={`/courses/${courseId}/learn?lesson=${lessons[0]._id}&preview=true`}
+          <Card className="overflow-hidden">
+            <div className="relative w-full h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80">
+              <Image
+                src={course.thumbnail || "/placeholder-course.jpg"}
+                alt={course.title}
+                fill
+                className="object-cover"
+              />
+              {!isEnrolled && lessons.length > 0 && lessons[0].isPreview && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-white text-black hover:bg-gray-100"
                   >
-                    <Play className="h-6 w-6 mr-2" />
-                    Preview Course
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Course Sidebar */}
+                    <Link
+                      href={`/courses/${courseId}/learn?lesson=${lessons[0]._id}&preview=true`}
+                    >
+                      <Play className="h-6 w-6 mr-2" />
+                      Preview Course
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>        {/* Course Sidebar */}
         <div className="space-y-6">
           <Card>
             <CardContent className="p-6 space-y-4">
@@ -543,9 +545,11 @@ export default function CourseDetailPage({ params }) {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
-                <img
+                <Image
                   src={course.instructor?.image || "https://avatar.vercel.sh/svnm"}
                   alt={course.instructor?.name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover"
                 />
                 <div className="flex-1">
@@ -635,11 +639,14 @@ export default function CourseDetailPage({ params }) {
                 className="hover:shadow-lg transition-shadow"
               >
                 <Link href={`/student/courses/${relatedCourse._id}`}>
-                  <img
-                    src={relatedCourse.thumbnail || "/placeholder-course.jpg"}
-                    alt={relatedCourse.title}
-                    className="w-full h-32 object-cover rounded-t-lg"
-                  />
+                  <div className="relative w-full h-32 overflow-hidden rounded-t-lg">
+                    <Image
+                      src={relatedCourse.thumbnail || "/placeholder-course.jpg"}
+                      alt={relatedCourse.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                   <CardContent className="p-4">
                     <h3 className="font-medium line-clamp-2 mb-2">
                       {relatedCourse.title}

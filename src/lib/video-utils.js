@@ -73,7 +73,7 @@ export function getVideoEmbedInfo(url) {
     return {
       type: "youtube",
       id: youtubeId,
-      embedUrl: `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&fs=1&cc_load_policy=1&iv_load_policy=3&showinfo=0&controls=1&autoplay=0`,
+      embedUrl: `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&fs=1&cc_load_policy=1&iv_load_policy=3&showinfo=0&controls=1&autoplay=0&disablekb=1`,
       thumbnailUrl: `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
     };
   }
