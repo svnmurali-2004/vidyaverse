@@ -245,7 +245,7 @@ export default function LearnPage({ params }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ courseId }),
       });
-
+      console.log(courseId,"the course id sent for backend")
       const data = await response.json();
       
       if (response.ok && data.success) {

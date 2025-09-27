@@ -11,6 +11,7 @@ import Progress from "@/models/progress.model";
 import Quiz from "@/models/quiz.model";
 import QuizAttempt from "@/models/quizAttempt.model";
 import { v4 as uuidv4 } from "uuid";
+import mongoose from "mongoose";
 
 // POST /api/certificates/generate - Generate certificate for completed course
 export async function POST(request) {
@@ -36,7 +37,35 @@ export async function POST(request) {
       );
     }
 
-    const userId = session.user.id;
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid course ID format" },
+        { status: 400 }
+      );
+    }
+
+    const userId = session.user?.id;
+
+    // Validate required fields
+    if (!userId) {
+      console.error("User ID not found in session:", session);
+      return NextResponse.json(
+        { success: false, error: "User ID not found in session" },
+        { status: 401 }
+      );
+    }
+
+    // Validate ObjectId format for userId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.error("Invalid user ID format:", userId);
+      return NextResponse.json(
+        { success: false, error: "Invalid user ID format" },
+        { status: 400 }
+      );
+    }
+
+    console.log("Certificate generation requested by userId:", userId, "for courseId:", courseId);
 
     // Check if enrollment exists
     const enrollment = await Enrollment.findOne({
@@ -179,18 +208,22 @@ export async function POST(request) {
     }
 
     // Check if certificate already exists
+    console.log("Checking for existing certificate - userId:", userId, "courseId:", courseId);
     const existingCertificate = await Certificate.findOne({
       user: userId,
       course: courseId,
     });
 
     if (existingCertificate) {
+      console.log("Certificate already exists:", existingCertificate._id);
       return NextResponse.json({
         success: true,
         data: existingCertificate,
         message: "Certificate already exists",
       });
     }
+
+    console.log("No existing certificate found, proceeding to create new one");
 
     // Get user details
     const user = await User.findById(userId);
@@ -214,6 +247,14 @@ export async function POST(request) {
     }
 
     // Generate certificate
+    console.log("Creating certificate with data:", {
+      userId: userId,
+      courseId: courseId,
+      certificateId: `CERT-${uuidv4().substring(0, 8).toUpperCase()}`,
+      completionPercentage: Math.round(completionPercentage),
+      finalScore: finalScore
+    });
+    
     const certificate = new Certificate({
       user: userId,
       course: courseId,
@@ -224,7 +265,27 @@ export async function POST(request) {
       isValid: true,
     });
 
-    await certificate.save();
+    try {
+      await certificate.save();
+      console.log("Certificate saved successfully with ID:", certificate._id);
+    } catch (saveError) {
+      console.error("Error saving certificate:", saveError);
+      
+      if (saveError.code === 11000) {
+        // MongoDB duplicate key error
+        console.error("Duplicate key error details:", {
+          userId: userId,
+          courseId: courseId,
+          errorMessage: saveError.message
+        });
+        return NextResponse.json(
+          { success: false, error: "Certificate already exists for this user and course combination" },
+          { status: 409 }
+        );
+      }
+      
+      throw saveError; // Re-throw other errors
+    }
     
     // Populate the certificate with related data
     await certificate.populate({

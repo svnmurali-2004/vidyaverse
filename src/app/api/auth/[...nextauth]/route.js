@@ -59,6 +59,8 @@ export const authOptions = {
   },
   callbacks: {
     async jwt({ token, user, account }) {
+      console.log("JWT callback - token:", token, "user:", user, "account:", account);
+      
       // For credentials login, set token fields from user
       if (user && !account) {
         token.id = user.id;
@@ -66,6 +68,7 @@ export const authOptions = {
         token.name = user.name;
         token.email = user.email;
         token.avatar = user.avatar;
+        console.log("JWT - credentials login, token set:", token);
       }
       // For OAuth providers, create user in database if not exists, and always set token fields from DB user
       if (
@@ -82,22 +85,27 @@ export const authOptions = {
             role: "student",
             provider: account.provider,
           });
+          console.log("JWT - OAuth new user created:", dbUser);
         }
         token.id = dbUser._id.toString();
         token.role = dbUser.role;
         token.name = dbUser.name;
         token.email = dbUser.email;
         token.avatar = dbUser.avatar;
+        console.log("JWT - OAuth login, token set:", token);
       }
       return token;
     },
     async session({ session, token }) {
+      console.log("Session callback - session:", session, "token:", token);
+      
       if (token && session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
         session.user.name = token.name;
         session.user.email = token.email;
         session.user.avatar = token.avatar || "https://avatar.vercel.sh/svnm";
+        console.log("Session callback - final session:", session);
       }
       return session;
     },
