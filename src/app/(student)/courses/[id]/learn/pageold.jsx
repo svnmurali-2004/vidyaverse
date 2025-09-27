@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SafeHtml } from "@/components/ui/safe-html";
 import VideoPlayer from "@/components/VideoPlayer";
 import QuizTaker from "@/components/QuizTaker";
 import {
@@ -1144,11 +1145,9 @@ export default function LearnPage({ params }) {
                               {/* Enhanced content display */}
                               {currentLesson.content ? (
                                 <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-pre:bg-gray-50 dark:prose-pre:bg-gray-800 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20">
-                                  <div 
+                                  <SafeHtml 
+                                    html={currentLesson.content}
                                     className="formatted-content"
-                                    dangerouslySetInnerHTML={{
-                                      __html: currentLesson.content
-                                    }}
                                   />
                                 </div>
                               ) : (

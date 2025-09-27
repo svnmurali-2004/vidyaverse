@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { SafeHtml } from "@/components/ui/safe-html";
 import VideoPlayer from "@/components/VideoPlayer";
 import {
   BookOpen,
@@ -102,9 +103,9 @@ const LessonContent = ({
                   <h3 className="text-lg font-semibold mb-3">
                     Additional Notes
                   </h3>
-                  <div 
+                  <SafeHtml 
+                    html={currentLesson.content}
                     className="prose max-w-none dark:prose-invert"
-                    dangerouslySetInnerHTML={{ __html: currentLesson.content }}
                   />
                 </div>
               )}
@@ -113,9 +114,9 @@ const LessonContent = ({
               {currentLesson.type === "text" && (
                 <div className="space-y-4">
                   {currentLesson.content ? (
-                    <div 
+                    <SafeHtml 
+                      html={currentLesson.content}
                       className="prose max-w-none dark:prose-invert"
-                      dangerouslySetInnerHTML={{ __html: currentLesson.content }}
                     />
                   ) : (
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">

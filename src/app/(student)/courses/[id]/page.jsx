@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SafeHtml } from "@/components/ui/safe-html";
 import {
   Play,
   Clock,
@@ -435,9 +436,9 @@ export default function CourseDetailPage({ params }) {
               <CardTitle>About This Course</CardTitle>
             </CardHeader>
             <CardContent>
-              <div
+              <SafeHtml
+                html={course.description}
                 className="prose max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: course.description }}
               />
             </CardContent>
           </Card>
