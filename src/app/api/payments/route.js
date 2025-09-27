@@ -99,9 +99,7 @@ export async function POST(request) {
       }
 
       order.status = "completed";
-      order.razorpayPaymentId = razorpay_payment_id;
-      order.razorpaySignature = razorpay_signature;
-      order.paidAt = new Date();
+      order.paymentId = razorpay_payment_id;
       await order.save();
 
       // Create enrollment

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -51,105 +52,95 @@ export default function CourseDetailPage({ params }) {
   const [wishlist, setWishlist] = useState(false);
 
   useEffect(() => {
-    if (courseId) {
-      fetchCourse();
-      fetchLessons();
-      fetchRelatedCourses();
-      fetchReviews();
-      if (session) {
-        checkEnrollment();
-        checkWishlist();
-      }
-    }
-  }, [courseId, session]);
+    if (!courseId) return;
 
-  const fetchCourse = async () => {
-    try {
-      const response = await fetch(
-        `/api/courses/${courseId}?includeDetails=true`
-      );
+    setLoading(true);
+
+    // Fetch all main data in parallel
+    const coursePromise = fetch(`/api/courses/${courseId}?includeDetails=true`).then(async (response) => {
       if (response.ok) {
         const data = await response.json();
         setCourse(data.data);
+        return data.data;
       } else {
         toast.error("Course not found");
         router.push("/student/courses");
+        return null;
       }
-    } catch (error) {
+    }).catch((error) => {
       console.error("Error fetching course:", error);
       toast.error("Failed to load course");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return null;
+    });
 
-  const fetchLessons = async () => {
-    try {
-      const response = await fetch(`/api/lessons?courseId=${courseId}`);
+    const lessonsPromise = fetch(`/api/lessons?courseId=${courseId}`).then(async (response) => {
       if (response.ok) {
         const data = await response.json();
         setLessons(data.data || []);
       }
-    } catch (error) {
+    }).catch((error) => {
       console.error("Error fetching lessons:", error);
-    }
-  };
+    });
 
-  const fetchRelatedCourses = async () => {
-    try {
-      const response = await fetch(
-        `/api/courses?limit=4&category=${course?.category}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setRelatedCourses(data.data?.filter((c) => c._id !== courseId) || []);
-      }
-    } catch (error) {
-      console.error("Error fetching related courses:", error);
-    }
-  };
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch(`/api/reviews?courseId=${courseId}`);
+    const reviewsPromise = fetch(`/api/reviews?courseId=${courseId}`).then(async (response) => {
       if (response.ok) {
         const data = await response.json();
         setReviews(data.data || []);
       }
-    } catch (error) {
+    }).catch((error) => {
       console.error("Error fetching reviews:", error);
-    }
-  };
+    });
 
-  const checkEnrollment = async () => {
-    try {
-      const response = await fetch(`/api/enrollments?courseId=${courseId}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data && data.data.length > 0) {
-          setIsEnrolled(true);
-          setEnrollmentId(data.data[0]._id);
-        }
-      }
-    } catch (error) {
-      console.error("Error checking enrollment:", error);
-    }
-  };
+    // Related courses depend on course category, so wait for course fetch
+    coursePromise.then((courseData) => {
+      if (!courseData) return;
+      fetch(`/api/courses?limit=4&category=${courseData.category}`)
+        .then(async (response) => {
+          if (response.ok) {
+            const data = await response.json();
+            setRelatedCourses(data.data?.filter((c) => c._id !== courseId) || []);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching related courses:", error);
+        });
+    });
 
-  const checkWishlist = async () => {
-    try {
-      const response = await fetch("/api/wishlist");
-      if (response.ok) {
-        const data = await response.json();
-        const isInWishlist = data.data?.some(
-          (item) => item.course._id === courseId
-        );
-        setWishlist(isInWishlist);
-      }
-    } catch (error) {
-      console.error("Error checking wishlist:", error);
+    // Enrollment and wishlist (if logged in)
+    if (session) {
+      fetch(`/api/enrollments?courseId=${courseId}`)
+        .then(async (response) => {
+          if (response.ok) {
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+              setIsEnrolled(true);
+              setEnrollmentId(data.data[0]._id);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error checking enrollment:", error);
+        });
+
+      fetch("/api/wishlist")
+        .then(async (response) => {
+          if (response.ok) {
+            const data = await response.json();
+            const isInWishlist = data.data?.some((item) => item.course._id === courseId);
+            setWishlist(isInWishlist);
+          }
+        })
+        .catch((error) => {
+          console.error("Error checking wishlist:", error);
+        });
     }
-  };
+
+    // Wait for main data, then set loading false
+    Promise.all([coursePromise, lessonsPromise, reviewsPromise]).finally(() => {
+      setLoading(false);
+    });
+  }, [courseId, session]);
+
 
   const handleEnroll = async () => {
     if (!session) {
@@ -298,32 +289,33 @@ export default function CourseDetailPage({ params }) {
             </div>
           </div>
 
-          <div className="relative">
-            <img
-              src={course.thumbnail || "/placeholder-course.jpg"}
-              alt={course.title}
-              className="w-full h-96 object-cover rounded-lg"
-            />
-            {!isEnrolled && lessons.length > 0 && lessons[0].isPreview && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-white text-black hover:bg-gray-100"
-                >
-                  <Link
-                    href={`/courses/${courseId}/learn?lesson=${lessons[0]._id}&preview=true`}
+          <Card className="overflow-hidden">
+            <div className="relative w-full h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80">
+              <Image
+                src={course.thumbnail || "/placeholder-course.jpg"}
+                alt={course.title}
+                fill
+                className="object-cover"
+              />
+              {!isEnrolled && lessons.length > 0 && lessons[0].isPreview && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-white text-black hover:bg-gray-100"
                   >
-                    <Play className="h-6 w-6 mr-2" />
-                    Preview Course
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Course Sidebar */}
+                    <Link
+                      href={`/courses/${courseId}/learn?lesson=${lessons[0]._id}&preview=true`}
+                    >
+                      <Play className="h-6 w-6 mr-2" />
+                      Preview Course
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>        {/* Course Sidebar */}
         <div className="space-y-6">
           <Card>
             <CardContent className="p-6 space-y-4">
@@ -553,11 +545,11 @@ export default function CourseDetailPage({ params }) {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
-                <img
-                  src={
-                    course.instructor?.image || "https://avatar.vercel.sh/svnm"
-                  }
+                <Image
+                  src={course.instructor?.image || "https://avatar.vercel.sh/svnm"}
                   alt={course.instructor?.name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover"
                 />
                 <div className="flex-1">
@@ -647,11 +639,14 @@ export default function CourseDetailPage({ params }) {
                 className="hover:shadow-lg transition-shadow"
               >
                 <Link href={`/student/courses/${relatedCourse._id}`}>
-                  <img
-                    src={relatedCourse.thumbnail || "/placeholder-course.jpg"}
-                    alt={relatedCourse.title}
-                    className="w-full h-32 object-cover rounded-t-lg"
-                  />
+                  <div className="relative w-full h-32 overflow-hidden rounded-t-lg">
+                    <Image
+                      src={relatedCourse.thumbnail || "/placeholder-course.jpg"}
+                      alt={relatedCourse.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                   <CardContent className="p-4">
                     <h3 className="font-medium line-clamp-2 mb-2">
                       {relatedCourse.title}

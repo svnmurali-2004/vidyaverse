@@ -13,8 +13,7 @@ export async function GET(request, { params }) {
 
     const certificate = await Certificate.findOne({
       $or: [
-        { certificateId: id },
-        { _id: id }
+        { certificateId: id }
       ]
     })
       .populate("course", "title thumbnail")

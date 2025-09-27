@@ -70,7 +70,7 @@ export default function VideoPlayer({
           title={title || "Google Drive Video"}
           className="w-full h-full"
           frameBorder="0"
-          allow="autoplay; fullscreen; picture-in-picture"
+          allow="autoplay; fullscreen"
           allowFullScreen
           onLoad={() => setIsPlaying(true)}
         />
@@ -105,7 +105,7 @@ export default function VideoPlayer({
             title={title || "Video player"}
             className="w-full h-full"
             frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; web-share"
             allowFullScreen
             onLoad={() => setIsPlaying(true)}
           />
@@ -123,7 +123,7 @@ export default function VideoPlayer({
           title={title || "Video player"}
           className="w-full h-full"
           frameBorder="0"
-          allow="autoplay; fullscreen; picture-in-picture"
+          allow="autoplay; fullscreen"
           allowFullScreen
           onLoad={() => setIsPlaying(true)}
         />

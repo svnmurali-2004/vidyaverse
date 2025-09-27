@@ -59,55 +59,53 @@ export const authOptions = {
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      if (user) {
+      console.log("JWT callback - token:", token, "user:", user, "account:", account);
+      
+      // For credentials login, set token fields from user
+      if (user && !account) {
         token.id = user.id;
         token.role = user.role;
         token.name = user.name;
         token.email = user.email;
         token.avatar = user.avatar;
+        console.log("JWT - credentials login, token set:", token);
       }
-      // For OAuth providers, create user in database if not exists
+      // For OAuth providers, create user in database if not exists, and always set token fields from DB user
       if (
         account &&
         (account.provider === "google" || account.provider === "github")
       ) {
         await db();
-        const existingUser = await User.findOne({ email: user.email });
-        console.log("OAuth flow - Existing user:", existingUser);
-
-        if (!existingUser) {
-          console.log("Creating new OAuth user");
-          const newUser = await User.create({
+        let dbUser = await User.findOne({ email: user.email });
+        if (!dbUser) {
+          dbUser = await User.create({
             email: user.email,
             name: user.name,
             avatar: user.image,
             role: "student",
-            isVerified: true, // OAuth users are automatically verified
+            provider: account.provider,
           });
-          console.log("New OAuth user created:", newUser._id);
-          token.id = newUser._id.toString();
-          token.role = newUser.role;
-          token.name = newUser.name;
-          token.email = newUser.email;
-          token.avatar = newUser.avatar;
-        } else {
-          console.log("Using existing OAuth user");
-          token.id = existingUser._id.toString();
-          token.role = existingUser.role;
-          token.name = existingUser.name;
-          token.email = existingUser.email;
-          token.avatar = existingUser.avatar;
+          console.log("JWT - OAuth new user created:", dbUser);
         }
+        token.id = dbUser._id.toString();
+        token.role = dbUser.role;
+        token.name = dbUser.name;
+        token.email = dbUser.email;
+        token.avatar = dbUser.avatar;
+        console.log("JWT - OAuth login, token set:", token);
       }
       return token;
     },
     async session({ session, token }) {
+      console.log("Session callback - session:", session, "token:", token);
+      
       if (token && session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
         session.user.name = token.name;
         session.user.email = token.email;
         session.user.avatar = token.avatar || "https://avatar.vercel.sh/svnm";
+        console.log("Session callback - final session:", session);
       }
       return session;
     },
