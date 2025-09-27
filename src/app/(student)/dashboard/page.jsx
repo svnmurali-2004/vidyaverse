@@ -164,36 +164,36 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-6 gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white truncate">
                 Welcome back, {session?.user?.name || 'Student'}!
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
                 Continue your learning journey and track your progress
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+              <Button variant="outline" size="sm" className="hidden sm:flex">
                 <Bell className="h-4 w-4 mr-2" />
-                Notifications
+                <span className="hidden lg:inline">Notifications</span>
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="hidden sm:flex">
                 <Search className="h-4 w-4 mr-2" />
-                Search
+                <span className="hidden lg:inline">Search</span>
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
@@ -259,30 +259,30 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8 min-w-0">
             {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {quickActions.map((action, index) => {
                     const IconComponent = action.icon;
                     return (
                       <Link key={index} href={action.href}>
-                        <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer min-w-0">
                           <div className="flex items-center space-x-4">
-                            <div className={`p-3 rounded-lg ${action.color} text-white`}>
+                            <div className={`p-3 rounded-lg ${action.color} text-white flex-shrink-0`}>
                               <IconComponent className="h-6 w-6" />
                             </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-semibold text-gray-900 dark:text-white truncate">
                                 {action.title}
                               </h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                                 {action.description}
                               </p>
                             </div>
@@ -326,13 +326,13 @@ export default function Dashboard() {
                     {recentCourses.map((enrollment) => (
                       <div
                         key={enrollment._id}
-                        className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
+                        className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
                       >
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 dark:text-white truncate">
                             {enrollment.course?.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
                             {enrollment.course?.instructor?.name}
                           </p>
                           <div className="mt-2">
@@ -343,12 +343,14 @@ export default function Dashboard() {
                             <Progress value={enrollment.progressPercentage || 0} />
                           </div>
                         </div>
-                        <Link href={`/courses/${enrollment.course?._id}/learn`}>
-                          <Button size="sm">
-                            <Play className="h-4 w-4 mr-2" />
-                            Continue
-                          </Button>
-                        </Link>
+                        <div className="flex-shrink-0">
+                          <Link href={`/courses/${enrollment.course?._id}/learn`}>
+                            <Button size="sm" className="w-full sm:w-auto">
+                              <Play className="h-4 w-4 mr-2" />
+                              Continue
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     ))}
                   </div>
