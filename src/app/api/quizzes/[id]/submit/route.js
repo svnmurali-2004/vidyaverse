@@ -37,7 +37,7 @@ export async function POST(request, { params }) {
       const enrollment = await Enrollment.findOne({
         user: session.user.id,
         course: quiz.course,
-        status: "active",
+        status: { $ne: "cancelled" },
       });
 
       if (!enrollment) {

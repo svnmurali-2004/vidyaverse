@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import VideoPlayer from "@/components/VideoPlayer";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import {
   ArrowLeft,
   Edit,
@@ -168,9 +169,9 @@ export default function LessonViewPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Content</h4>
                   <div className="prose max-w-none">
-                    <div
+                    <MarkdownRenderer
+                      content={lesson.content}
                       className="text-gray-700 dark:text-gray-300"
-                      dangerouslySetInnerHTML={{ __html: lesson.content }}
                     />
                   </div>
                 </div>

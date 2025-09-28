@@ -29,7 +29,7 @@ export async function GET(request) {
       const enrollment = await Enrollment.findOne({
         user: session.user.id,
         course: courseId,
-        status: "active",
+        status: { $ne: "cancelled" },
       });
 
       if (!enrollment) {
@@ -115,95 +115,67 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const {
-      title,
-      description,
-      course,
-      lesson,
-      questions,
-      timeLimit,
-      passingScore,
-      attempts,
-      isActive,
-      isRequiredForCertificate,
-    } = body;
+    const data = await request.json();
+    await connectDB();
 
-    if (!title || !course || !questions || questions.length === 0) {
+    // Validate required fields
+    if (!data.title || !data.course) {
       return NextResponse.json(
-        {
-          error: "Title, course, and questions are required",
-        },
+        { error: "Title and course are required" },
         { status: 400 }
       );
     }
 
-    // Validate questions
-    for (let i = 0; i < questions.length; i++) {
-      const question = questions[i];
-      if (!question.question || !question.type) {
-        return NextResponse.json(
-          {
-            error: `Question ${i + 1} is missing required fields`,
-          },
-          { status: 400 }
-        );
-      }
+    // Verify course exists
+    const course = await Course.findById(data.course);
+    if (!course) {
+      return NextResponse.json(
+        { error: "Course not found" },
+        { status: 404 }
+      );
+    }
 
-      if (
-        question.type !== "fill-blank" &&
-        (!question.options || question.options.length === 0)
-      ) {
+    // If lesson is specified, verify it exists and belongs to the course
+    if (data.lesson) {
+      const lesson = await Lesson.findOne({
+        _id: data.lesson,
+        course: data.course,
+      });
+      if (!lesson) {
         return NextResponse.json(
-          {
-            error: `Question ${i + 1} must have options`,
-          },
-          { status: 400 }
+          { error: "Lesson not found or doesn't belong to this course" },
+          { status: 404 }
         );
-      }
-
-      if (question.type !== "fill-blank") {
-        const hasCorrectAnswer = question.options.some(
-          (option) => option.isCorrect
-        );
-        if (!hasCorrectAnswer) {
-          return NextResponse.json(
-            {
-              error: `Question ${i + 1} must have at least one correct answer`,
-            },
-            { status: 400 }
-          );
-        }
       }
     }
 
-    await connectDB();
-
+    // Create quiz
     const quiz = new Quiz({
-      title,
-      description,
-      course,
-      lesson,
-      questions,
-      timeLimit: timeLimit || 30,
-      passingScore: passingScore || 70,
-      attempts: attempts || 3,
-      isActive: isActive !== undefined ? isActive : true,
-      isRequiredForCertificate:
-        isRequiredForCertificate !== undefined
-          ? isRequiredForCertificate
-          : false,
+      title: data.title,
+      description: data.description || "",
+      course: data.course,
+      lesson: data.lesson || null,
+      timeLimit: data.timeLimit || 30,
+      passingScore: data.passingScore || 70,
+      attempts: data.attempts || 3,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+      isRequiredForCertificate: data.isRequiredForCertificate || false,
+      questions: data.questions || [],
       createdBy: session.user.id,
     });
 
     await quiz.save();
 
-    const populatedQuiz = await Quiz.findById(quiz._id)
-      .populate("course", "title")
-      .populate("lesson", "title")
-      .populate("createdBy", "name");
+    // Populate the response
+    await quiz.populate("course", "title");
+    await quiz.populate("lesson", "title");
+    await quiz.populate("createdBy", "name");
 
-    return NextResponse.json(populatedQuiz, { status: 201 });
+    return NextResponse.json({
+      success: true,
+      message: "Quiz created successfully",
+      data: quiz,
+    });
   } catch (error) {
     console.error("Error creating quiz:", error);
     return NextResponse.json(

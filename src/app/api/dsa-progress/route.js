@@ -36,7 +36,7 @@ export async function GET(request) {
       const enrollment = await Enrollment.findOne({
         user: session.user.id,
         course: lesson.course._id,
-        status: "active",
+        status: { $ne: "cancelled" },
       });
 
       if (!enrollment) {
@@ -109,7 +109,7 @@ export async function POST(request) {
       const enrollment = await Enrollment.findOne({
         user: session.user.id,
         course: lesson.course._id,
-        status: "active",
+        status: { $ne: "cancelled" },
       });
 
       if (!enrollment) {

@@ -34,7 +34,7 @@ export async function GET(request, { params }) {
       const enrollment = await Enrollment.findOne({
         user: session.user.id,
         course: quiz.course._id,
-        status: "active",
+        status: { $ne: "cancelled" },
       });
 
       if (!enrollment) {

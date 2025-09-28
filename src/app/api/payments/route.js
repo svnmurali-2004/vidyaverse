@@ -5,6 +5,8 @@ import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay";
 import Order from "@/models/order.model";
 import Course from "@/models/course.model";
 import Enrollment from "@/models/enrollment.model";
+import Coupon from "@/models/coupon.model";
+import CouponUsage from "@/models/couponUsage.model";
 import connectDB from "@/lib/db";
 
 export async function POST(request) {
@@ -17,7 +19,7 @@ export async function POST(request) {
     await connectDB();
 
     const body = await request.json();
-    const { courseId, action } = body;
+    const { courseId, action, couponCode, discountAmount, finalAmount } = body;
 
     if (action === "create_order") {
       // Create Razorpay order
@@ -42,19 +44,65 @@ export async function POST(request) {
         );
       }
 
+      let orderAmount = course.price;
+      let appliedCoupon = null;
+      
+      // Validate coupon if provided
+      if (couponCode) {
+        appliedCoupon = await Coupon.findOne({ 
+          code: couponCode.toUpperCase() 
+        });
+        
+        if (!appliedCoupon || !appliedCoupon.isCurrentlyValid) {
+          return NextResponse.json(
+            { error: "Invalid or expired coupon" },
+            { status: 400 }
+          );
+        }
+        
+        // Re-validate coupon can be used by this user
+        const canUse = await appliedCoupon.canBeUsedBy(session.user.id);
+        if (!canUse) {
+          return NextResponse.json(
+            { error: "Coupon usage limit exceeded" },
+            { status: 400 }
+          );
+        }
+        
+        // Re-calculate discount to ensure it's correct
+        const discountResult = appliedCoupon.calculateDiscount(
+          course.price, 
+          courseId, 
+          course.category
+        );
+        
+        if (!discountResult.valid) {
+          return NextResponse.json(
+            { error: discountResult.reason },
+            { status: 400 }
+          );
+        }
+        
+        orderAmount = discountResult.finalAmount;
+      }
+
       // Create order in database
       const order = new Order({
         user: session.user.id,
         course: courseId,
-        amount: course.price,
+        amount: orderAmount,
+        originalAmount: course.price,
+        discountAmount: (discountAmount || (course.price - orderAmount)),
+        couponCode: couponCode || null,
+        appliedCoupon: appliedCoupon ? appliedCoupon._id : null,
         status: "pending",
-        provider: "razorpay",
+        paymentMethod: "razorpay",
       });
       await order.save();
 
-      // Create Razorpay order
+      // Create Razorpay order with the final amount
       const razorpayOrder = await createRazorpayOrder({
-        amount: course.price,
+        amount: orderAmount, // Use the discounted amount
         receipt: order._id.toString(),
       });
 
@@ -93,14 +141,37 @@ export async function POST(request) {
       }
 
       // Find and update order
-      const order = await Order.findOne({ razorpayOrderId: razorpay_order_id });
+      const order = await Order.findOne({ razorpayOrderId: razorpay_order_id })
+        .populate('appliedCoupon');
       if (!order) {
         return NextResponse.json({ error: "Order not found" }, { status: 404 });
       }
 
       order.status = "completed";
-      order.paymentId = razorpay_payment_id;
+      order.razorpayPaymentId = razorpay_payment_id;
+      order.razorpaySignature = razorpay_signature;
+      order.paidAt = new Date();
       await order.save();
+
+      // Record coupon usage if a coupon was applied
+      if (order.appliedCoupon) {
+        const couponUsage = new CouponUsage({
+          coupon: order.appliedCoupon._id,
+          user: session.user.id,
+          order: order._id,
+          course: order.course,
+          discountAmount: order.discountAmount,
+          originalAmount: order.originalAmount,
+          finalAmount: order.amount,
+        });
+        await couponUsage.save();
+
+        // Update coupon usage count
+        await Coupon.findByIdAndUpdate(
+          order.appliedCoupon._id,
+          { $inc: { usedCount: 1 } }
+        );
+      }
 
       // Create enrollment
       const enrollment = new Enrollment({
