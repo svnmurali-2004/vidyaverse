@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 export default function CourseOverview({ course }) {
   return (
@@ -10,9 +11,9 @@ export default function CourseOverview({ course }) {
           <CardTitle className="text-lg sm:text-xl">About This Course</CardTitle>
         </CardHeader>
         <CardContent>
-          <div
+          <MarkdownRenderer 
+            content={course.description}
             className="prose max-w-none dark:prose-invert text-sm sm:text-base"
-            dangerouslySetInnerHTML={{ __html: course.description }}
           />
         </CardContent>
       </Card>
