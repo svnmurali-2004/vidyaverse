@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { marked } from "marked";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { SafeHtml } from "@/components/ui/safe-html";
 import { 
   Bold, 
   Italic, 
@@ -190,12 +191,12 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder, className }) => 
             rows={8}
           />
         ) : (
-          <div 
+          <SafeHtml
+            html={htmlContent}
             className={cn(
               "min-h-[150px] max-h-[400px] overflow-y-auto p-4 prose prose-sm max-w-none",
               className
             )}
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
         )}
       </div>

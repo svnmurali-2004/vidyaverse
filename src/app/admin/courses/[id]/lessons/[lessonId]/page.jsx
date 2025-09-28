@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SafeHtml } from "@/components/ui/safe-html";
 import VideoPlayer from "@/components/VideoPlayer";
 import {
   ArrowLeft,
@@ -168,9 +169,9 @@ export default function LessonViewPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Content</h4>
                   <div className="prose max-w-none">
-                    <div
+                    <SafeHtml
+                      html={lesson.content}
                       className="text-gray-700 dark:text-gray-300"
-                      dangerouslySetInnerHTML={{ __html: lesson.content }}
                     />
                   </div>
                 </div>
