@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import toast from 'react-hot-toast';
 import {
   BookOpen,
@@ -31,100 +33,273 @@ import {
   CheckCircle
 } from 'lucide-react';
 
-export default function Dashboard() {
+// Lazy load heavy components
+const QuickActionsGrid = dynamic(() => import('./components/QuickActionsGrid'), {
+  loading: () => <QuickActionsSkeleton />,
+  ssr: false
+});
+
+const RecentCoursesSection = dynamic(() => import('./components/RecentCoursesSection'), {
+  loading: () => <RecentCoursesSkeleton />,
+  ssr: false
+});
+
+// Enhanced skeleton components for loading states
+const StatsSkeleton = () => (
+  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    {[...Array(4)].map((_, i) => (
+      <Card key={i} className="relative overflow-hidden border-0 bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800/50">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <Skeleton className="h-4 w-[100px]" />
+          <div className="p-2.5 rounded-xl bg-gray-200 dark:bg-gray-700">
+            <Skeleton className="h-5 w-5" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-8 w-[60px] mb-2" />
+          <Skeleton className="h-3 w-[120px] mb-3" />
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <Skeleton className="h-2 w-[40px]" />
+              <Skeleton className="h-2 w-[30px]" />
+            </div>
+            <Skeleton className="h-1.5 w-full rounded-full" />
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+const QuickActionsSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {[...Array(6)].map((_, i) => (
+      <Card key={i} className="cursor-pointer">
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-10 w-10 rounded" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-[120px]" />
+              <Skeleton className="h-3 w-[160px]" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+const RecentCoursesSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+    {[...Array(4)].map((_, i) => (
+      <Card key={i}>
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-12 w-12 rounded" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-[140px]" />
+                <Skeleton className="h-3 w-[100px]" />
+              </div>
+            </div>
+            <Skeleton className="h-2 w-full" />
+            <div className="flex justify-between">
+              <Skeleton className="h-3 w-[60px]" />
+              <Skeleton className="h-8 w-[80px]" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+export default function DashboardOptimized() {
   const { data: session, status } = useSession();
   const router = useRouter();
   
-  const [stats, setStats] = useState({
-    enrolledCourses: 0,
-    completedCourses: 0,
-    quizzesTaken: 0,
-    averageScore: 0,
-    totalLearningHours: 0,
-    certificates: 0
-  });
-  
+  const [stats, setStats] = useState(null);
   const [recentCourses, setRecentCourses] = useState([]);
   const [availableQuizzes, setAvailableQuizzes] = useState([]);
-  const [upcomingDeadlines, setUpcomingDeadlines] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
 
+  // Redirect handling with early return
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/signin');
       return;
     }
 
+    if (status === 'authenticated' && session?.user?.role === 'admin') {
+      router.push('/admin');
+      return;
+    }
+
     if (status === 'authenticated') {
-      // Redirect admin users to admin dashboard
-      if (session?.user?.role === 'admin') {
-        router.push('/admin');
-        return;
-      }
-      
-      fetchDashboardData();
+      setInitialLoading(false);
+      fetchDashboardDataOptimized();
     }
   }, [session, status, router]);
 
-  const fetchDashboardData = async () => {
+  // Optimized data fetching with caching and error boundaries
+  const fetchDashboardDataOptimized = async () => {
     try {
-      setLoading(true);
+      setDataLoading(true);
       
-      // Fetch user enrollments, quizzes, and certificates
-      const [enrollmentsRes, quizzesRes, certificatesRes] = await Promise.all([
-        fetch('/api/enrollments'),
-        fetch('/api/quizzes'),
-        fetch('/api/certificates')
-      ]);
+      // Use AbortController for request cancellation
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-      let enrollments = [];
-      let quizzes = [];
-      let certificates = [];
+      // Fetch only essential data first
+      const essentialPromises = [
+        fetch('/api/dashboard/stats', { 
+          signal: controller.signal,
+          headers: { 'Cache-Control': 'public, max-age=300' } // 5min cache
+        }),
+        fetch('/api/dashboard/recent-courses', { 
+          signal: controller.signal,
+          headers: { 'Cache-Control': 'public, max-age=180' } // 3min cache
+        })
+      ];
 
-      if (enrollmentsRes.ok) {
-        const enrollmentsData = await enrollmentsRes.json();
-        enrollments = enrollmentsData.data || [];
-        setRecentCourses(enrollments.slice(0, 4));
+      const [statsRes, coursesRes] = await Promise.all(essentialPromises);
+      clearTimeout(timeoutId);
+
+      // Handle responses with proper error checking
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        console.log('📊 Raw stats response:', statsData);
+        console.log('📊 Stats data:', statsData.data);
+        setStats(statsData.data);
+      } else {
+        console.error('❌ Stats API error:', statsRes.status, statsRes.statusText);
       }
 
-      if (quizzesRes.ok) {
-        const quizzesData = await quizzesRes.json();
-        quizzes = quizzesData.data || [];
-        setAvailableQuizzes(quizzes.filter(q => q.canAttempt).slice(0, 3));
+      if (coursesRes.ok) {
+        const coursesData = await coursesRes.json();
+        setRecentCourses(coursesData.data?.slice(0, 4) || []);
       }
 
-      if (certificatesRes.ok) {
-        const certificatesData = await certificatesRes.json();
-        certificates = certificatesData.data || [];
-      }
-
-      // Calculate user statistics
-      const completedCourses = enrollments.filter(e => e.progressPercentage >= 100).length;
-      const quizzesTaken = quizzes.filter(q => q.lastAttempt).length;
-      const averageScore = quizzesTaken > 0 
-        ? Math.round(quizzes
-            .filter(q => q.lastAttempt)
-            .reduce((sum, q) => sum + q.lastAttempt.percentage, 0) / quizzesTaken)
-        : 0;
-
-      setStats({
-        enrolledCourses: enrollments.length,
-        completedCourses,
-        quizzesTaken,
-        averageScore,
-        totalLearningHours: Math.round(enrollments.reduce((sum, e) => sum + (e.course?.duration || 0), 0)),
-        certificates: certificates.length
-      });
+      // Fetch non-essential data in background
+      setTimeout(() => {
+        fetchNonEssentialData();
+      }, 100);
 
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast.error('Failed to load dashboard data');
+      if (error.name !== 'AbortError') {
+        console.error('❌ Error fetching dashboard data:', error);
+        console.error('❌ Error details:', error.message, error.stack);
+        toast.error('Failed to load dashboard data');
+      }
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
-  if (status === 'loading' || loading) {
+  // Fetch non-critical data asynchronously
+  const fetchNonEssentialData = async () => {
+    try {
+      const quizzesRes = await fetch('/api/quizzes', {
+        headers: { 'Cache-Control': 'public, max-age=600' } // 10min cache
+      });
+      
+      if (quizzesRes.ok) {
+        const quizzesData = await quizzesRes.json();
+        setAvailableQuizzes(quizzesData.data?.filter(q => q.canAttempt)?.slice(0, 3) || []);
+      }
+    } catch (error) {
+      console.error('Error fetching non-essential data:', error);
+    }
+  };
+
+  // Memoize complex calculations with enhanced design properties
+  const memoizedStats = useMemo(() => {
+    console.log('🔄 Memoizing stats with data:', stats);
+    
+    if (!stats) {
+      console.log('❌ No stats data available');
+      return null;
+    }
+    
+    const completionRate = stats.enrolledCourses > 0 ? Math.round((stats.completedCourses / stats.enrolledCourses) * 100) : 0;
+    const quizPerformance = stats.averageScore || 0;
+    
+    console.log('📈 Calculated values:', {
+      enrolledCourses: stats.enrolledCourses,
+      completedCourses: stats.completedCourses,
+      completionRate,
+      averageScore: stats.averageScore,
+      quizPerformance,
+      totalLearningHours: stats.totalLearningHours,
+      quizzesTaken: stats.quizzesTaken
+    });
+    
+    const processedStats = [
+      {
+        title: "Enrolled Courses",
+        value: stats.enrolledCourses || 0,
+        icon: BookOpen,
+        description: "+2 from last month",
+        color: "text-blue-600",
+        iconBg: "from-blue-500 to-blue-600",
+        bgColor: "bg-blue-50",
+        gradientFrom: "rgba(59, 130, 246, 0.1)",
+        gradientTo: "rgba(147, 197, 253, 0.05)",
+        trend: true,
+        trendColor: "text-green-500"
+      },
+      {
+        title: "Completion Rate",
+        value: `${completionRate}%`,
+        icon: CheckCircle,
+        description: `${stats.completedCourses || 0} of ${stats.enrolledCourses || 0} completed`,
+        color: "text-green-600",
+        iconBg: "from-green-500 to-emerald-600",
+        bgColor: "bg-green-50",
+        gradientFrom: "rgba(34, 197, 94, 0.1)",
+        gradientTo: "rgba(110, 231, 183, 0.05)",
+        progress: completionRate,
+        progressGradient: "from-green-500 to-emerald-500",
+        trend: completionRate > 50,
+        trendColor: completionRate > 50 ? "text-green-500" : "text-gray-400"
+      },
+      {
+        title: "Quiz Performance",
+        value: `${Math.round(stats.averageScore || 0)}%`,
+        icon: Trophy,
+        description: `${stats.quizzesTaken || 0} quizzes completed`,
+        color: "text-yellow-600",
+        iconBg: "from-yellow-500 to-orange-500",
+        bgColor: "bg-yellow-50",
+        gradientFrom: "rgba(245, 158, 11, 0.1)",
+        gradientTo: "rgba(251, 191, 36, 0.05)",
+        progress: quizPerformance,
+        progressGradient: "from-yellow-500 to-orange-500",
+        trend: quizPerformance > 70,
+        trendColor: quizPerformance > 70 ? "text-green-500" : quizPerformance > 50 ? "text-yellow-500" : "text-red-500"
+      },
+      {
+        title: "Study Time",
+        value: `${stats.totalLearningHours || 0}h`,
+        icon: Clock,
+        description: "This month",
+        color: "text-purple-600",
+        iconBg: "from-purple-500 to-indigo-600",
+        bgColor: "bg-purple-50",
+        gradientFrom: "rgba(147, 51, 234, 0.1)",
+        gradientTo: "rgba(196, 181, 253, 0.05)",
+        trend: (stats.totalLearningHours || 0) > 10,
+        trendColor: "text-green-500"
+      }
+    ];
+    
+    console.log('✅ Processed stats for display:', processedStats);
+    return processedStats;
+  }, [stats]);
+
+  // Show loading state only for initial load
+  if (status === 'loading' || initialLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -132,333 +307,204 @@ export default function Dashboard() {
     );
   }
 
-  const quickActions = [
-    {
-      title: 'Browse Courses',
-      description: 'Discover new courses to enhance your skills',
-      icon: BookOpen,
-      href: '/courses',
-      color: 'bg-blue-500'
-    },
-    {
-      title: 'My Certificates',
-      description: 'View and download your course certificates',
-      icon: Award,
-      href: '/certificates',
-      color: 'bg-yellow-500'
-    },
-    {
-      title: 'Take Quizzes',
-      description: 'Test your knowledge with interactive quizzes',
-      icon: HelpCircle,
-      href: '/quizzes',
-      color: 'bg-green-500'
-    },
-    {
-      title: 'View Profile',
-      description: 'Manage your account and preferences',
-      icon: User,
-      href: '/profile',
-      color: 'bg-purple-500'
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, {session?.user?.name || 'Student'}!
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Continue your learning journey and track your progress
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <Bell className="h-4 w-4 mr-2" />
-                Notifications
-              </Button>
-              <Button variant="outline" size="sm">
-                <Search className="h-4 w-4 mr-2" />
-                Search
-              </Button>
-            </div>
-          </div>
-        </div>
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">
+          Welcome back, {session?.user?.name?.split(' ')[0] || 'Student'}!
+        </h2>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-                  <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {stats.enrolledCourses}
+      {/* Enhanced Stats Cards with Suspense */}
+      <Suspense fallback={<StatsSkeleton />}>
+        {memoizedStats ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {memoizedStats.map((stat, index) => (
+              <Card 
+                key={index} 
+                className="relative overflow-hidden group hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:scale-[1.02] border-0 bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800/50"
+              >
+                {/* Background decoration */}
+                <div className={`absolute top-0 right-0 w-20 h-20 opacity-5 group-hover:opacity-10 transition-opacity duration-300 ${stat.bgColor}`} 
+                     style={{
+                       background: `radial-gradient(circle, ${stat.gradientFrom} 0%, ${stat.gradientTo} 70%, transparent 100%)`
+                     }} 
+                />
+                
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+                    {stat.title}
+                  </CardTitle>
+                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${stat.iconBg} shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}>
+                    <stat.icon className="h-5 w-5 text-white drop-shadow-sm" />
+                  </div>
+                </CardHeader>
+                <CardContent className="relative">
+                  <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                    {stat.value}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    {stat.trend && (
+                      <span className={`inline-flex items-center ${stat.trendColor}`}>
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                      </span>
+                    )}
+                    {stat.description}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Enrolled Courses</p>
+                  
+                  {/* Progress bar for certain stats */}
+                  {stat.progress !== undefined && (
+                    <div className="mt-3">
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        <span>Progress</span>
+                        <span>{stat.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                        <div 
+                          className={`bg-gradient-to-r ${stat.progressGradient} h-1.5 rounded-full transition-all duration-1000 ease-out group-hover:brightness-110`}
+                          style={{ width: `${stat.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <StatsSkeleton />
+        )}
+      </Suspense>
+
+      {/* Main Dashboard Content */}
+      <div className="space-y-6">
+        {/* Continue Learning - Full Width Priority Section */}
+        <Card className="shadow-xl border-0 bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center justify-between text-xl">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-r from-primary to-blue-500 rounded-lg">
+                  <BookOpen className="h-5 w-5 text-white" />
                 </div>
+                Continue Learning
               </div>
+              <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary/90">
+                <Link href="/courses" className="flex items-center gap-1">
+                  View All Courses <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </CardTitle>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Pick up where you left off and continue your learning journey
+            </p>
+          </CardHeader>
+          <CardContent>
+            <Suspense fallback={<RecentCoursesSkeleton />}>
+              <RecentCoursesSection 
+                courses={recentCourses} 
+                loading={dataLoading}
+              />
+            </Suspense>
+          </CardContent>
+        </Card>
+
+        {/* Secondary Content Grid */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Quick Actions */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded">
+                  <Target className="h-4 w-4 text-white" />
+                </div>
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Suspense fallback={<QuickActionsSkeleton />}>
+                <QuickActionsGrid />
+              </Suspense>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
-                  <Trophy className="h-6 w-6 text-green-600 dark:text-green-400" />
+          {/* Learning Progress Overview */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1 bg-gradient-to-r from-green-500 to-teal-500 rounded">
+                  <TrendingUp className="h-4 w-4 text-white" />
                 </div>
-                <div className="ml-4">
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {stats.completedCourses}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900">
-                  <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {stats.averageScore}%
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Avg Quiz Score</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900">
-                  <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {stats.totalLearningHours}h
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Learning Hours</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {quickActions.map((action, index) => {
-                    const IconComponent = action.icon;
-                    return (
-                      <Link key={index} href={action.href}>
-                        <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer">
-                          <div className="flex items-center space-x-4">
-                            <div className={`p-3 rounded-lg ${action.color} text-white`}>
-                              <IconComponent className="h-6 w-6" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">
-                                {action.title}
-                              </h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {action.description}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Courses */}
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Continue Learning</CardTitle>
-                  <Link href="/courses">
-                    <Button variant="ghost" size="sm">
-                      View All <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {recentCourses.length === 0 ? (
-                  <div className="text-center py-8">
-                    <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                      No courses enrolled
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      Start your learning journey by enrolling in a course
-                    </p>
-                    <Link href="/courses">
-                      <Button>Browse Courses</Button>
+                Learning Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {memoizedStats && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{memoizedStats[0].value}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Enrolled</div>
+                    </div>
+                    <div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{memoizedStats[1].value}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Completed</div>
+                    </div>
+                    <div className="text-center p-3 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">{memoizedStats[2].value}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Avg Score</div>
+                    </div>
+                    <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{memoizedStats[3].value}h</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Learning</div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="pt-2">
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/profile/progress" className="flex items-center justify-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      View Detailed Progress
                     </Link>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {recentCourses.map((enrollment) => (
-                      <div
-                        key={enrollment._id}
-                        className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
-                      >
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            {enrollment.course?.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            {enrollment.course?.instructor?.name}
-                          </p>
-                          <div className="mt-2">
-                            <div className="flex items-center justify-between text-sm mb-1">
-                              <span>Progress</span>
-                              <span>{enrollment.progressPercentage || 0}%</span>
-                            </div>
-                            <Progress value={enrollment.progressPercentage || 0} />
-                          </div>
-                        </div>
-                        <Link href={`/courses/${enrollment.course?._id}/learn`}>
-                          <Button size="sm">
-                            <Play className="h-4 w-4 mr-2" />
-                            Continue
-                          </Button>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Available Quizzes */}
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Available Quizzes</CardTitle>
-                  <Link href="/quizzes">
-                    <Button variant="ghost" size="sm">
-                      View All <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </Link>
+                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {availableQuizzes.length === 0 ? (
-                  <div className="text-center py-4">
-                    <HelpCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      No quizzes available
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {availableQuizzes.map((quiz) => (
-                      <div key={quiz._id} className="p-3 rounded border border-gray-200 dark:border-gray-700">
-                        <h4 className="font-medium text-sm text-gray-900 dark:text-white">
-                          {quiz.title}
-                        </h4>
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Target className="h-3 w-3 mr-1" />
-                            {quiz.questions?.length || 0} questions
-                          </div>
-                          <Link href={`/quizzes/${quiz._id}`}>
-                            <Button size="xs">Start</Button>
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Learning Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Learning Stats</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Award className="h-4 w-4 text-yellow-500 mr-2" />
-                      <span className="text-sm">Certificates</span>
-                    </div>
-                    <span className="font-semibold">{stats.certificates}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Target className="h-4 w-4 text-blue-500 mr-2" />
-                      <span className="text-sm">Quizzes Taken</span>
-                    </div>
-                    <span className="font-semibold">{stats.quizzesTaken}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <TrendingUp className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Avg Score</span>
-                    </div>
-                    <span className="font-semibold">{stats.averageScore}%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Links */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Links</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Link href="/profile" className="block text-sm text-blue-600 hover:text-blue-800">
-                    • View Profile
-                  </Link>
-                  <Link href="/settings" className="block text-sm text-blue-600 hover:text-blue-800">
-                    • Account Settings
-                  </Link>
-                  <Link href="/courses" className="block text-sm text-blue-600 hover:text-blue-800">
-                    • Browse All Courses
-                  </Link>
-                  <Link href="/quizzes" className="block text-sm text-blue-600 hover:text-blue-800">
-                    • Take Quizzes
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      {/* Available Quizzes - Load Last */}
+      {availableQuizzes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Quizzes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {availableQuizzes.map((quiz) => (
+                <div key={quiz._id} className="flex items-center space-x-4 p-3 border rounded-lg">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Trophy className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium">{quiz.title}</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {quiz.questionCount} questions • {quiz.timeLimit} minutes
+                    </p>
+                  </div>
+                  <Button asChild className="h-8 px-3">
+                    <Link href={`/quizzes/${quiz._id}`} className='flex items-center'>
+                      <Play className="h-4 w-4 mr-1" />
+                      Start
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
