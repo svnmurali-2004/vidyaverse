@@ -219,9 +219,9 @@ export default function CourseDetailPage({ params }) {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex items-center justify-center h-48 sm:h-64">
+          <div className="animate-spin rounded-full h-16 w-16 sm:h-32 sm:w-32 border-b-2 border-primary"></div>
         </div>
       </div>
     );
@@ -229,15 +229,15 @@ export default function CourseDetailPage({ params }) {
 
   if (!course) {
     return (
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <Card>
-          <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Course Not Found</h2>
+          <CardContent className="p-6 sm:p-8 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">Course Not Found</h2>
             <p className="text-gray-600 mb-4">
               The course you're looking for doesn't exist.
             </p>
             <Button asChild>
-              <Link href="/student/courses">Browse Courses</Link>
+              <Link href="/courses">Browse Courses</Link>
             </Button>
           </CardContent>
         </Card>
@@ -246,36 +246,36 @@ export default function CourseDetailPage({ params }) {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8 space-y-8">
-      {/* Course Hero */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Badge variant="secondary">{course.category}</Badge>
-              <Badge variant="outline">{course.level}</Badge>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 lg:space-y-8">
+      {/* Course Hero - Mobile Optimized */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="secondary" className="text-xs sm:text-sm">{course.category}</Badge>
+              <Badge variant="outline" className="text-xs sm:text-sm">{course.level}</Badge>
               {course.isFeatured && (
-                <Badge className="bg-yellow-100 text-yellow-800">
+                <Badge className="bg-yellow-100 text-yellow-800 text-xs sm:text-sm">
                   Featured
                 </Badge>
               )}
             </div>
 
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
               {course.title}
             </h1>
 
-            <p className="text-xl text-gray-600 dark:text-gray-400">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
               {course.shortDescription}
             </p>
 
-            <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center space-x-2">
-                <User className="h-4 w-4" />
-                <span>{course.instructor?.name}</span>
+                <User className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{course.instructor?.name}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4" />
+                <Users className="h-4 w-4 flex-shrink-0" />
                 <span>{course.enrollmentCount || 0} students</span>
               </div>
               <div className="flex items-center space-x-2">
@@ -320,7 +320,7 @@ export default function CourseDetailPage({ params }) {
           <Card>
             <CardContent className="p-6 space-y-4">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-2">
                   {course.price === 0 ? "Free" : `₹${course.price}`}
                 </div>
                 {course.originalPrice &&
@@ -420,14 +420,16 @@ export default function CourseDetailPage({ params }) {
         </div>
       </div>
 
-      {/* Course Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
-          <TabsTrigger value="instructor">Instructor</TabsTrigger>
-          <TabsTrigger value="reviews">Reviews</TabsTrigger>
-        </TabsList>
+      {/* Course Content Tabs - Mobile Optimized */}
+      <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+        <div className="overflow-x-auto">
+          <TabsList className="w-full sm:w-auto min-w-full sm:min-w-0 grid grid-cols-4 sm:inline-flex">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="curriculum" className="text-xs sm:text-sm">Curriculum</TabsTrigger>
+            <TabsTrigger value="instructor" className="text-xs sm:text-sm">Instructor</TabsTrigger>
+            <TabsTrigger value="reviews" className="text-xs sm:text-sm">Reviews</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="overview" className="space-y-6">
           <Card>
@@ -482,38 +484,38 @@ export default function CourseDetailPage({ params }) {
         <TabsContent value="curriculum">
           <Card>
             <CardHeader>
-              <CardTitle>Course Content</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Course Content</CardTitle>
               <CardDescription>
                 {lessons.length} lessons • {course.duration || "Self-paced"}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {lessons.map((lesson, index) => (
                   <div
                     key={lesson._id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border rounded-lg gap-3 sm:gap-4"
                   >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium">
+                    <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0 mt-0.5 sm:mt-0">
                         {index + 1}
                       </div>
-                      <div>
-                        <h4 className="font-medium">{lesson.title}</h4>
-                        <p className="text-sm text-gray-600">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm sm:text-base line-clamp-1 sm:line-clamp-none">{lesson.title}</h4>
+                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mt-1">
                           {lesson.description}
                         </p>
-                        <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-                          <span>{lesson.type}</span>
+                        <div className="flex items-center space-x-3 sm:space-x-4 mt-1 sm:mt-2 text-xs text-gray-500">
+                          <span className="capitalize">{lesson.type}</span>
                           {lesson.duration && (
                             <span>{lesson.duration} min</span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 self-start sm:self-center">
                       {lesson.isPreview ? (
-                        <Button asChild variant="outline" size="sm">
+                        <Button asChild variant="outline" size="sm" className="text-xs sm:text-sm">
                           <Link
                             href={`/courses/${courseId}/learn?lesson=${lesson._id}&preview=true`}
                           >
@@ -628,17 +630,17 @@ export default function CourseDetailPage({ params }) {
         </TabsContent>
       </Tabs>
 
-      {/* Related Courses */}
+      {/* Related Courses - Mobile Optimized */}
       {relatedCourses.length > 0 && (
-        <section className="space-y-6">
-          <h2 className="text-2xl font-bold">Related Courses</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="space-y-4 sm:space-y-6">
+          <h2 className="text-xl sm:text-2xl font-bold">Related Courses</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {relatedCourses.map((relatedCourse) => (
               <Card
                 key={relatedCourse._id}
                 className="hover:shadow-lg transition-shadow"
               >
-                <Link href={`/student/courses/${relatedCourse._id}`}>
+                <Link href={`/courses/${relatedCourse._id}`}>
                   <div className="relative w-full h-32 overflow-hidden rounded-t-lg">
                     <Image
                       src={relatedCourse.thumbnail || "/placeholder-course.jpg"}
@@ -647,15 +649,15 @@ export default function CourseDetailPage({ params }) {
                       className="object-cover"
                     />
                   </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-medium line-clamp-2 mb-2">
+                  <CardContent className="p-3 sm:p-4">
+                    <h3 className="font-medium line-clamp-2 mb-2 text-sm sm:text-base">
                       {relatedCourse.title}
                     </h3>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
+                      <span className="text-gray-600 truncate">
                         {relatedCourse.instructor?.name}
                       </span>
-                      <span className="font-bold text-blue-600">
+                      <span className="font-bold text-blue-600 flex-shrink-0 ml-2">
                         {relatedCourse.price === 0
                           ? "Free"
                           : `₹${relatedCourse.price}`}
