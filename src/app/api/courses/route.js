@@ -25,9 +25,12 @@ export async function GET(request) {
     const featured = searchParams.get("featured") === "true";
     const published = searchParams.get("published") !== "false";
     const admin = searchParams.get("admin") === "true";
+    const price = searchParams.get("price");
+    const minPrice = searchParams.get("minPrice");
 
-    console.log("Courses API - Admin request:", admin);
-    console.log("Courses API - Published filter:", published);
+    console.log("Courses API - Request params:", {
+      page, limit, search, category, level, sortBy, featured, published, admin, price, minPrice
+    });
 
     const skip = (page - 1) * limit;
 
@@ -38,8 +41,6 @@ export async function GET(request) {
     if (!admin) {
       filter.isPublished = published;
     }
-
-    console.log("Courses API - Filter:", JSON.stringify(filter));
 
     if (search) {
       filter.$or = [
@@ -60,6 +61,15 @@ export async function GET(request) {
     if (featured) {
       filter.isFeatured = true;
     }
+
+    // Add price filters
+    if (price !== null && price !== undefined) {
+      filter.price = parseInt(price);
+    } else if (minPrice !== null && minPrice !== undefined) {
+      filter.price = { $gte: parseInt(minPrice) };
+    }
+
+    console.log("Courses API - Filter:", JSON.stringify(filter));
 
     // Build sort object
     const sort = {};
