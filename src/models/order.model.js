@@ -13,9 +13,7 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "completed", "failed"],
       default: "pending",
     },
-    amount: { type: Number, required: true }, // Final amount after discount
-    originalAmount: { type: Number, required: true }, // Original course price
-    discountAmount: { type: Number, default: 0 }, // Discount applied
+    amount: { type: Number, required: true },
     paymentMethod: {
       type: String,
       enum: ["razorpay", "stripe", "free"],
@@ -24,11 +22,7 @@ const orderSchema = new mongoose.Schema(
     razorpayOrderId: String, // Razorpay order ID
     razorpayPaymentId: String, // Razorpay payment ID
     razorpaySignature: String, // Razorpay signature for verification
-    couponCode: String, // Applied coupon code
-    appliedCoupon: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Coupon",
-    },
+    couponCode: String,
     paidAt: Date,
   },
   { timestamps: true }

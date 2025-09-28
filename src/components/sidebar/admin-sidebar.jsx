@@ -14,7 +14,6 @@ import {
   IconGlobe,
   IconClipboardCheck,
   IconFileText,
-  IconTicket,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -82,25 +81,6 @@ const adminNavigation = [
       {
         title: "User Analytics",
         url: "/admin/analytics",
-      },
-    ],
-  },
-  {
-    title: "Coupon Management",
-    url: "/admin/coupons",
-    icon: IconTicket,
-    items: [
-      {
-        title: "All Coupons",
-        url: "/admin/coupons",
-      },
-      {
-        title: "Create Coupon",
-        url: "/admin/coupons?create=true",
-      },
-      {
-        title: "Usage Analytics",
-        url: "/admin/analytics/coupons",
       },
     ],
   },
