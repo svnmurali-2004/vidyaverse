@@ -40,6 +40,7 @@ export default function CheckoutPage({ params }) {
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [discount, setDiscount] = useState(0);
   const [finalPrice, setFinalPrice] = useState(0);
 
@@ -97,22 +98,46 @@ export default function CheckoutPage({ params }) {
       const response = await fetch("/api/coupons/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: couponCode, courseId }),
+        body: JSON.stringify({ 
+          code: couponCode, 
+          courseId,
+          orderAmount: course.price 
+        }),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setDiscount(data.discount);
-        setFinalPrice(course.price - data.discount);
-        toast.success("Coupon applied successfully!");
+        const result = await response.json();
+        const couponData = result.data;
+        
+        setAppliedCoupon(couponData);
+        setDiscount(couponData.discount);
+        setFinalPrice(couponData.finalAmount);
+        
+        toast.success(`Coupon applied! You saved ₹${couponData.discount}`);
       } else {
         const error = await response.json();
         toast.error(error.error || "Invalid coupon code");
+        // Reset coupon state on error
+        setAppliedCoupon(null);
+        setDiscount(0);
+        setFinalPrice(course.price);
       }
     } catch (error) {
       console.error("Error applying coupon:", error);
       toast.error("Failed to apply coupon");
+      // Reset coupon state on error
+      setAppliedCoupon(null);
+      setDiscount(0);
+      setFinalPrice(course.price);
     }
+  };
+
+  const removeCoupon = () => {
+    setCouponCode("");
+    setAppliedCoupon(null);
+    setDiscount(0);
+    setFinalPrice(course.price);
+    toast.success("Coupon removed");
   };
 
   const handlePayment = async () => {
@@ -126,6 +151,9 @@ export default function CheckoutPage({ params }) {
         body: JSON.stringify({
           courseId,
           action: "create_order",
+          couponCode: appliedCoupon ? appliedCoupon.code : null,
+          discountAmount: discount,
+          finalAmount: finalPrice,
         }),
       });
 
@@ -358,24 +386,50 @@ export default function CheckoutPage({ params }) {
               <CardTitle>Promo Code</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Enter coupon code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  onClick={applyCoupon}
-                  disabled={!couponCode.trim()}
-                >
-                  Apply
-                </Button>
-              </div>
-              {discount > 0 && (
-                <div className="mt-2 text-sm text-green-600">
-                  ✓ Coupon applied! You saved ₹{discount}
+              {!appliedCoupon ? (
+                <div className="space-y-3">
+                  <div className="flex space-x-2">
+                    <Input
+                      placeholder="Enter coupon code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={applyCoupon}
+                      disabled={!couponCode.trim()}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div>
+                        <div className="font-medium text-green-800">
+                          {appliedCoupon.code}
+                        </div>
+                        <div className="text-sm text-green-600">
+                          {appliedCoupon.description}
+                        </div>
+                        <div className="text-sm text-green-600">
+                          You saved ₹{appliedCoupon.discount}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={removeCoupon}
+                      className="text-green-700 hover:text-green-800"
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
