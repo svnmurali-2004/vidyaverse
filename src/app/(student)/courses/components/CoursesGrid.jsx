@@ -1,8 +1,9 @@
 "use client";
 
 import CourseCard from "./CourseCard";
-import { BookOpen } from "lucide-react";
+import { BookOpen, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 export default function CoursesGrid({
   courses,
@@ -22,22 +23,21 @@ export default function CoursesGrid({
           {[...Array(8)].map((_, index) => (
             <div
               key={index}
-              className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm overflow-hidden animate-pulse"
+              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden animate-pulse h-[380px]"
             >
               {/* Image skeleton */}
-              <div className="h-48 bg-gray-200 dark:bg-gray-700" />
-              
+              <div className="h-48 bg-slate-200 dark:bg-slate-800" />
+
               {/* Content skeleton */}
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
-                
-                <div className="flex justify-between items-center pt-2">
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+              <div className="p-4 space-y-4">
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
+                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-full" />
+                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-2/3" />
+
+                <div className="flex justify-between items-center pt-4">
+                  <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-16" />
                   <div className="flex gap-2">
-                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16" />
-                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+                    <div className="h-9 bg-slate-200 dark:bg-slate-800 rounded w-24" />
                   </div>
                 </div>
               </div>
@@ -50,43 +50,56 @@ export default function CoursesGrid({
 
   if (courses.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
-          <BookOpen className="h-12 w-12 text-gray-400" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center py-24 px-4"
+      >
+        <div className="mx-auto w-32 h-32 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-6 border-2 border-dashed border-slate-200 dark:border-slate-800">
+          <SearchX className="h-12 w-12 text-slate-400 dark:text-slate-500" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
           No courses found
         </h3>
-        <p className="text-gray-500 dark:text-gray-400 text-base mb-8 max-w-md mx-auto">
-          We couldn't find any courses matching your criteria. Try adjusting your filters or browse our featured courses.
+        <p className="text-slate-500 dark:text-slate-400 text-lg mb-8 max-w-md mx-auto leading-relaxed">
+          We couldn't find any courses matching your current filters. Try adjusting your search or filters to find what you're looking for.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button onClick={onClearFilters} variant="outline">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button
+            onClick={onClearFilters}
+            variant="outline"
+            className="h-12 px-8 rounded-full border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
             Clear All Filters
           </Button>
-          <Button asChild>
-            <a href="#featured-courses">Browse Featured Courses</a>
+          <Button
+            asChild
+            className="h-12 px-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20"
+          >
+            <a href="#featured-courses">Browse Featured</a>
           </Button>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
     <div className="space-y-6">
       {/* Results Count */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {courses.length} course{courses.length !== 1 ? 's' : ''}
+      <div className="flex items-center justify-between px-1">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          Showing <span className="text-slate-900 dark:text-white font-bold">{courses.length}</span> course{courses.length !== 1 ? 's' : ''}
         </p>
       </div>
 
       {/* Courses Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {courses.map((course) => (
-          <div
+        {courses.map((course, index) => (
+          <motion.div
             key={course._id}
-            className="transform transition-all duration-200 hover:scale-[1.02]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
           >
             <CourseCard
               course={course}
@@ -94,7 +107,7 @@ export default function CoursesGrid({
               onToggleWishlist={onToggleWishlist}
               onEnroll={onEnroll}
             />
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

@@ -36,6 +36,7 @@ export async function middleware(req) {
     "/signup",
     "/auth/error",
     "/auth/verify-request",
+    "/courses",
   ];
 
   if (publicPages.some((page) => pathname.startsWith(page))) {

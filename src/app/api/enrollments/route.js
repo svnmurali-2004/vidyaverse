@@ -40,10 +40,6 @@ export async function GET(request) {
             course: enrollment.course._id,
           });
 
-          console.log(
-            `Course ${enrollment.course.title}: Found ${totalLessons} total lessons`
-          );
-
           // Get completed lessons count - using both userId and user for compatibility
           const completedLessons = await Progress.countDocuments({
             $or: [
@@ -60,19 +56,9 @@ export async function GET(request) {
             ],
           });
 
-          console.log(
-            `Course ${enrollment.course.title}: Found ${completedLessons} completed lessons`
-          );
-
           // Calculate progress percentage
           const progressPercentage =
             totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
-
-          console.log(
-            `Course ${
-              enrollment.course.title
-            }: Progress ${progressPercentage.toFixed(1)}%`
-          );
 
           return {
             ...enrollment.toObject(),

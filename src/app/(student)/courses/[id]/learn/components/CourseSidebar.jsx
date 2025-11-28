@@ -39,15 +39,15 @@ const CourseSidebar = ({
 }) => {
   const router = useRouter();
 
-  const completionPercentage = lessons.length > 0 
-    ? Math.round((completedLessons.size / lessons.length) * 100) 
+  const completionPercentage = lessons.length > 0
+    ? Math.round((completedLessons.size / lessons.length) * 100)
     : 0;
 
   return (
     <>
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -76,7 +76,7 @@ const CourseSidebar = ({
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            
+
             {/* Progress */}
             {!isPreviewMode && lessons.length > 0 && (
               <div className="mt-4">
@@ -102,22 +102,34 @@ const CourseSidebar = ({
               {lessons.map((lesson, index) => {
                 const isCompleted = completedLessons.has(lesson._id);
                 const isCurrent = currentLesson?._id === lesson._id;
-                const isLocked = isPreviewMode && !lesson.isPreview;
+
+                // Locking logic
+                let isLocked = isPreviewMode && !lesson.isPreview;
+
+                if (!isPreviewMode) {
+                  const previousLesson = index > 0 ? lessons[index - 1] : null;
+                  const previousCompleted = previousLesson ? completedLessons.has(previousLesson._id) : true;
+
+                  // Lock if neither this lesson nor the previous one is completed
+                  // Exception: First lesson is always unlocked (previousCompleted is true)
+                  if (!isCompleted && !previousCompleted) {
+                    isLocked = true;
+                  }
+                }
 
                 return (
                   <button
                     key={lesson._id}
                     onClick={() => selectLesson(lesson)}
                     disabled={isLocked}
-                    className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 ${
-                      isCurrent
-                        ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                        : isCompleted
+                    className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 ${isCurrent
+                      ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                      : isCompleted
                         ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
                         : isLocked
-                        ? "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
-                        : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
+                          ? "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
+                          : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      }`}
                   >
                     <div className="flex items-center">
                       <div className="flex-shrink-0 mr-3">
@@ -137,15 +149,14 @@ const CourseSidebar = ({
                             {index + 1}.
                           </span>
                         </div>
-                        <h4 className={`font-medium text-sm truncate ${
-                          isCurrent
-                            ? "text-blue-900 dark:text-blue-100"
-                            : isCompleted
+                        <h4 className={`font-medium text-sm truncate ${isCurrent
+                          ? "text-blue-900 dark:text-blue-100"
+                          : isCompleted
                             ? "text-green-900 dark:text-green-100"
                             : isLocked
-                            ? "text-gray-400"
-                            : "text-gray-900 dark:text-gray-100"
-                        }`}>
+                              ? "text-gray-400"
+                              : "text-gray-900 dark:text-gray-100"
+                          }`}>
                           {lesson.title}
                         </h4>
                         <div className="flex items-center space-x-2 mt-1">
@@ -174,12 +185,12 @@ const CourseSidebar = ({
             </div>
 
             {/* Quizzes Section */}
-            {quizzes.length > 0 && (
-              <div className="space-y-2 mb-6">
-                <h4 className="font-medium text-sm text-gray-500 uppercase tracking-wide">
-                  Quizzes
-                </h4>
-                {quizzes.map((quiz, index) => {
+            <div className="space-y-2 mb-6">
+              <h4 className="font-medium text-sm text-gray-500 uppercase tracking-wide">
+                Quizzes
+              </h4>
+              {quizzes.length > 0 ? (
+                quizzes.map((quiz, index) => {
                   const canAttempt = quiz.canAttempt && !isPreviewMode;
                   const hasAttempted = quiz.attemptCount > 0;
                   const lastScore = quiz.lastAttempt?.percentage || 0;
@@ -188,13 +199,12 @@ const CourseSidebar = ({
                   return (
                     <div
                       key={quiz._id}
-                      className={`w-full p-3 rounded-lg border-2 ${
-                        passed
-                          ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                          : hasAttempted
+                      className={`w-full p-3 rounded-lg border-2 ${passed
+                        ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                        : hasAttempted
                           ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
                           : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
@@ -221,8 +231,8 @@ const CourseSidebar = ({
                           ) : isPreviewMode ? (
                             <Lock className="h-5 w-5 text-gray-400" />
                           ) : (
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant={hasAttempted ? "outline" : "default"}
                               onClick={() => {
                                 router.push(`/quizzes/${quiz._id}`);
@@ -236,9 +246,13 @@ const CourseSidebar = ({
                       </div>
                     </div>
                   );
-                })}
-              </div>
-            )}
+                })
+              ) : (
+                <div className="text-sm text-gray-500 italic p-3 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center">
+                  No quizzes found
+                </div>
+              )}
+            </div>
 
             {/* Certificate Section */}
             <CertificateSection

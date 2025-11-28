@@ -29,7 +29,7 @@ export async function GET(request) {
       const enrollment = await Enrollment.findOne({
         user: session.user.id,
         course: courseId,
-        status: "active",
+        status: { $in: ["active", "completed"] },
       });
 
       if (!enrollment) {

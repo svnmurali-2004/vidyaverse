@@ -37,12 +37,12 @@ export async function GET(request) {
       // **SECURITY FIX**: For non-preview requests, verify enrollment
       if (session && session.user.role === "student") {
         const isPreview = searchParams.get("preview") === "true";
-        
+
         if (!isPreview) {
           const enrollment = await Enrollment.findOne({
             user: session.user.id,
             course: courseId,
-            status: "active"
+            status: { $in: ["active", "completed"] }
           });
 
           if (!enrollment) {
@@ -67,10 +67,6 @@ export async function GET(request) {
       .skip(skip)
       .limit(limit)
       .lean();
-
-    console.log("Lessons API - Filter:", filter);
-    console.log("Lessons API - Found lessons:", lessons.length);
-    console.log("Lessons API - Lessons:", lessons.map(l => ({ id: l._id, title: l.title, type: l.type, hasQuiz: !!l.quiz })));
 
     const total = await Lesson.countDocuments(filter);
 

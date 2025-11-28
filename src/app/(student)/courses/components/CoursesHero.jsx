@@ -4,7 +4,10 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CourseCard from "./CourseCard";
-import { ChevronLeft, ChevronRight, Star, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Sparkles, TrendingUp } from "lucide-react";
+import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
+import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
+import { motion } from "framer-motion";
 
 export default function CoursesHero({
   featuredCourses,
@@ -22,7 +25,7 @@ export default function CoursesHero({
       const cardWidth = container.children[0]?.offsetWidth || 0;
       const gap = 24; // gap-6 = 24px
       const scrollAmount = cardWidth + gap;
-      
+
       container.scrollBy({
         left: scrollAmount,
         behavior: 'smooth'
@@ -36,7 +39,7 @@ export default function CoursesHero({
       const cardWidth = container.children[0]?.offsetWidth || 0;
       const gap = 24; // gap-6 = 24px
       const scrollAmount = cardWidth + gap;
-      
+
       container.scrollBy({
         left: -scrollAmount,
         behavior: 'smooth'
@@ -46,13 +49,16 @@ export default function CoursesHero({
 
   if (loading) {
     return (
-      <section className="mb-12">
-        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 rounded-2xl p-8 animate-pulse">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-2" />
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-96 mb-8" />
+      <section className="mb-12 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
+        <div className="h-[500px] bg-slate-50 dark:bg-slate-900/50 p-12 animate-pulse flex flex-col justify-center">
+          <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-48 mb-6" />
+          <div className="h-12 bg-slate-200 dark:bg-slate-800 rounded w-96 mb-4" />
+          <div className="h-12 bg-slate-200 dark:bg-slate-800 rounded w-72 mb-8" />
+          <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-full max-w-2xl mb-12" />
+
           <div className="flex gap-6 overflow-hidden">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="min-w-80 h-96 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="min-w-[300px] h-64 bg-slate-200 dark:bg-slate-800 rounded-xl" />
             ))}
           </div>
         </div>
@@ -65,116 +71,155 @@ export default function CoursesHero({
   }
 
   return (
-    <section id="featured-courses" className="mb-12">
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 rounded-2xl p-6 md:p-8 relative overflow-hidden">
-        {/* Background Decorations */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full blur-xl" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-400/10 rounded-full blur-xl" />
-        
-        {/* Header */}
-        <div className="relative z-10 mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-6 w-6 text-yellow-500" />
-            <Badge className="bg-yellow-500 text-black hover:bg-yellow-600">
-              Featured
-            </Badge>
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            🌟 Featured Courses
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-            Hand-picked courses that are trending and highly rated by our community
-          </p>
-        </div>
+    <section id="featured-courses" className="mb-12 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
+      <HeroHighlight containerClassName="h-auto min-h-[500px] items-start py-12">
+        <div className="relative z-10 w-full px-6 md:px-10">
 
-        {/* Courses Carousel */}
-        <div className="relative">
-          {/* Navigation Buttons - Hidden on Mobile */}
-          {featuredCourses.length > 3 && (
-            <>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-black/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-black hidden md:flex"
-                onClick={scrollToPrev}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-black/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-black hidden md:flex"
-                onClick={scrollToNext}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </>
-          )}
-
-          {/* Courses Container */}
-          <div 
-            ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto md:overflow-x-hidden scrollbar-hide pb-4 md:pb-0"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {featuredCourses.map((course) => (
-              <div
-                key={course._id}
-                className="min-w-[280px] md:min-w-[320px] flex-shrink-0"
-              >
-                <CourseCard
-                  course={course}
-                  wishlist={wishlist}
-                  onToggleWishlist={onToggleWishlist}
-                  onEnroll={onEnroll}
-                  isFeatured={true}
-                />
+          {/* Header */}
+          <div className="mb-10 max-w-3xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-2 mb-4"
+            >
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <Sparkles className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
               </div>
-            ))}
+              <span className="text-sm font-bold text-yellow-700 dark:text-yellow-400 uppercase tracking-wider">
+                Hand-Picked For You
+              </span>
+            </motion.div>
+
+            <h2 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
+              Discover Our <br />
+              <Highlight className="text-black dark:text-white">
+                Featured Courses
+              </Highlight>
+            </h2>
+
+            <TextGenerateEffect
+              words="Explore top-rated courses selected by our experts to help you master new skills and advance your career."
+              className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl font-normal"
+            />
           </div>
 
-          {/* Mobile Scroll Indicator */}
-          <div className="flex justify-center mt-4 md:hidden">
-            <div className="flex gap-1">
-              {featuredCourses.map((_, index) => (
-                <div
-                  key={index}
-                  className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"
-                />
+          {/* Courses Carousel */}
+          <div className="relative">
+            {/* Navigation Buttons - Hidden on Mobile */}
+            {featuredCourses.length > 3 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-800 hidden md:flex h-12 w-12 rounded-full"
+                  onClick={scrollToPrev}
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-800 hidden md:flex h-12 w-12 rounded-full"
+                  onClick={scrollToNext}
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+              </>
+            )}
+
+            {/* Courses Container */}
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-6 overflow-x-auto md:overflow-x-hidden scrollbar-hide pb-8 pt-4 px-2"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {featuredCourses.map((course, index) => (
+                <motion.div
+                  key={course._id}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="min-w-[280px] md:min-w-[340px] flex-shrink-0"
+                >
+                  <CourseCard
+                    course={course}
+                    wishlist={wishlist}
+                    onToggleWishlist={onToggleWishlist}
+                    onEnroll={onEnroll}
+                    isFeatured={true}
+                  />
+                </motion.div>
               ))}
             </div>
-          </div>
-        </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-center">
-            <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-              {featuredCourses.reduce((acc, course) => acc + (course.enrollmentCount || 0), 0).toLocaleString()}
+            {/* Mobile Scroll Indicator */}
+            <div className="flex justify-center mt-4 md:hidden">
+              <div className="flex gap-1">
+                {featuredCourses.map((_, index) => (
+                  <div
+                    key={index}
+                    className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"
+                  />
+                ))}
+              </div>
             </div>
-            <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Students Enrolled</div>
           </div>
-          <div className="text-center">
-            <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-1">
-              <Star className="h-4 w-4 md:h-5 md:w-5 fill-yellow-400 text-yellow-400" />
-              {(featuredCourses.reduce((acc, course) => acc + (course.avgRating || 0), 0) / featuredCourses.length).toFixed(1)}
+
+          {/* Stats Section */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {featuredCourses.reduce((acc, course) => acc + (course.enrollmentCount || 0), 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Students Enrolled</div>
+              </div>
             </div>
-            <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Average Rating</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-              {featuredCourses.filter(course => course.price === 0).length}
+
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl text-yellow-600 dark:text-yellow-400">
+                <Star className="h-6 w-6 fill-current" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {(featuredCourses.reduce((acc, course) => acc + (course.avgRating || 0), 0) / featuredCourses.length).toFixed(1)}
+                </div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Average Rating</div>
+              </div>
             </div>
-            <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Free Courses</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-              {featuredCourses.length}
+
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl text-green-600 dark:text-green-400">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {featuredCourses.filter(course => course.price === 0).length}
+                </div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Free Courses</div>
+              </div>
             </div>
-            <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Featured Courses</div>
+
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 dark:text-purple-400">
+                <Badge className="bg-purple-600 hover:bg-purple-700 h-6 w-6 p-0 flex items-center justify-center rounded-full">
+                  {featuredCourses.length}
+                </Badge>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                  Total
+                </div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Featured Courses</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </HeroHighlight>
     </section>
   );
 }
