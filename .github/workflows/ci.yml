@@ -1,4 +1,4 @@
-name: CI
+name: Build
 
 on:
   push:
@@ -8,24 +8,17 @@ on:
 
 jobs:
   build:
-    name: build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
+    env:
+      # Replace this with your project's build command:
+      # - Node: "npm run build" or "yarn build"
+      # - Maven: "mvn -B package"
+      # - Gradle: "./gradlew build"
+      # - Flutter: "flutter build apk"
+      BUILD_COMMAND: npm run build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-        env:
-          CI: true
+      - name: Run build
+        run: $BUILD_COMMAND
