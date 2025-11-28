@@ -16,6 +16,7 @@ const courseSchema = new mongoose.Schema(
     },
     instructor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     isPublished: { type: Boolean, default: false },
+    isFeatured: { type: Boolean, default: false },
     lessons: [{ type: mongoose.Schema.Types.ObjectId, ref: "Lesson" }],
     status: {
       type: String,

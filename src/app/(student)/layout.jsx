@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 export default function StudentLayout({ children }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -24,6 +25,10 @@ export default function StudentLayout({ children }) {
     // Only check authentication after the delay
     if (!isReady || status === "loading") return;
 
+    // Allow public access to courses, about, and contact pages
+    const publicPaths = ["/courses", "/about", "/contact"];
+    if (publicPaths.some(path => pathname?.startsWith(path))) return;
+
     if (!session) {
       console.log("❌ No session found for student area, redirecting to home");
       router.push("/");
@@ -31,7 +36,7 @@ export default function StudentLayout({ children }) {
     }
 
     console.log("✅ Student access granted for:", session.user?.email);
-  }, [session, status, router, isReady]);
+  }, [session, status, router, isReady, pathname]);
 
   // Show loading state while session is being fetched or during delay
   if (!isReady || status === "loading") {
@@ -43,7 +48,10 @@ export default function StudentLayout({ children }) {
   }
 
   // Show redirecting state if user is not authenticated
-  if (!session) {
+  const publicPaths = ["/courses", "/about", "/contact"];
+  const isPublicPath = publicPaths.some(path => pathname?.startsWith(path));
+
+  if (!session && !isPublicPath) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-lg">Redirecting...</div>

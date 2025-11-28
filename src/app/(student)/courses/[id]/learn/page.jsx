@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Menu } from "lucide-react";
+import { ArrowLeft, Menu, LayoutDashboard, Network } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { use } from "react";
 
 // Import components
 import CourseSidebar from "./components/CourseSidebar";
 import LessonContent from "./components/LessonContent";
 import LessonNavigation from "./components/LessonNavigation";
 import CelebrationModal from "./components/CelebrationModal";
+import CourseMindMap from "@/components/CourseMindMap";
 
 export default function LearnPage({ params }) {
   const { data: session, status } = useSession();
@@ -37,6 +37,7 @@ export default function LearnPage({ params }) {
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [viewMode, setViewMode] = useState("list"); // "list" or "mindmap"
 
   // Effects
   useEffect(() => {
@@ -170,7 +171,7 @@ export default function LearnPage({ params }) {
 
         const newCompletedLessons = new Set([...completedLessons, lessonId]);
         const completionPercentage = (newCompletedLessons.size / lessons.length) * 100;
-        
+
         if (completionPercentage >= 80) {
           setTimeout(() => handleGenerateCertificate(false), 1000);
         }
@@ -193,17 +194,17 @@ export default function LearnPage({ params }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ courseId }),
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setShowCelebration(true);
-        setCertificateStatus({ 
-          success: true, 
+        setCertificateStatus({
+          success: true,
           message: "🏆 Congratulations! Your certificate has been generated!",
-          certificate: data.certificate 
+          certificate: data.certificate
         });
-        
+
         setTimeout(() => {
           setShowCertificateModal(true);
         }, 1000);
@@ -214,7 +215,7 @@ export default function LearnPage({ params }) {
 
         toast.success(
           "🎉 Achievement Unlocked! Your certificate is ready!",
-          { 
+          {
             duration: 6000,
             style: {
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -229,20 +230,20 @@ export default function LearnPage({ params }) {
         const failedQuizzes = data.requirements.quizzes
           .filter(q => !q.passed)
           .map(q => ({ title: q.title }));
-          
+
         if (failedQuizzes.length > 0) {
           const message = `Pass all required quizzes to earn certificate. Outstanding: ${failedQuizzes.map(q => q.title).join(', ')}`;
           toast.error(message, { duration: 6000 });
-          setCertificateStatus({ 
-            success: false, 
-            message, 
-            requirements: data.requirements 
+          setCertificateStatus({
+            success: false,
+            message,
+            requirements: data.requirements
           });
         }
       } else {
-        setCertificateStatus({ 
-          success: false, 
-          message: data.error || "Failed to generate certificate" 
+        setCertificateStatus({
+          success: false,
+          message: data.error || "Failed to generate certificate"
         });
         if (manual) {
           toast.error(data.error || "Failed to generate certificate");
@@ -250,9 +251,9 @@ export default function LearnPage({ params }) {
       }
     } catch (error) {
       console.error("Error generating certificate:", error);
-      setCertificateStatus({ 
-        success: false, 
-        message: "Error connecting to server" 
+      setCertificateStatus({
+        success: false,
+        message: "Error connecting to server"
       });
       if (manual) {
         toast.error("Error generating certificate");
@@ -273,10 +274,9 @@ export default function LearnPage({ params }) {
     }
 
     setCurrentLesson(lesson);
-    
+
     router.push(
-      `/courses/${courseId}/learn?lesson=${lesson._id}${
-        isPreviewMode ? "&preview=true" : ""
+      `/courses/${courseId}/learn?lesson=${lesson._id}${isPreviewMode ? "&preview=true" : ""
       }`,
       { scroll: false }
     );
@@ -309,7 +309,7 @@ export default function LearnPage({ params }) {
               >
                 <Menu className="h-4 w-4" />
               </Button>
-              
+
               <Link
                 href={`/courses/${courseId}`}
                 className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
@@ -318,6 +318,29 @@ export default function LearnPage({ params }) {
                 <span className="hidden sm:inline">Back to Course</span>
                 <span className="sm:hidden">Back</span>
               </Link>
+            </div>
+
+            <div className="hidden md:flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === "list"
+                  ? "bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                  }`}
+              >
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                List View
+              </button>
+              <button
+                onClick={() => setViewMode("mindmap")}
+                className={`flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === "mindmap"
+                  ? "bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                  }`}
+              >
+                <Network className="w-4 h-4 mr-2" />
+                Mind Map
+              </button>
             </div>
 
             <div className="flex-1 text-center lg:hidden">
@@ -352,19 +375,45 @@ export default function LearnPage({ params }) {
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
           <div className="max-w-4xl mx-auto p-6">
-            <LessonContent
-              currentLesson={currentLesson}
-              isPreviewMode={isPreviewMode}
-              completedLessons={completedLessons}
-              markLessonComplete={markLessonComplete}
-            />
+            {viewMode === "mindmap" ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Course Mind Map
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Visualize your learning path
+                  </p>
+                </div>
+                <CourseMindMap
+                  lessons={lessons}
+                  currentLessonId={currentLesson?._id}
+                  onLessonSelect={(lessonId) => {
+                    const lesson = lessons.find((l) => l._id === lessonId);
+                    if (lesson) {
+                      selectLesson(lesson);
+                      setViewMode("list");
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <>
+                <LessonContent
+                  currentLesson={currentLesson}
+                  isPreviewMode={isPreviewMode}
+                  completedLessons={completedLessons}
+                  markLessonComplete={markLessonComplete}
+                />
 
-            <LessonNavigation
-              lessons={lessons}
-              currentLesson={currentLesson}
-              selectLesson={selectLesson}
-              isPreviewMode={isPreviewMode}
-            />
+                <LessonNavigation
+                  lessons={lessons}
+                  currentLesson={currentLesson}
+                  selectLesson={selectLesson}
+                  isPreviewMode={isPreviewMode}
+                />
+              </>
+            )}
           </div>
         </main>
       </div>

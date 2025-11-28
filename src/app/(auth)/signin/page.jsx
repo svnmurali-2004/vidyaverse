@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 
 export function LoginForm({ className, ...props }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -75,7 +76,7 @@ export function LoginForm({ className, ...props }) {
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="border-border shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
           <CardDescription>Sign in to your VidyaVerse account</CardDescription>
@@ -84,9 +85,10 @@ export function LoginForm({ className, ...props }) {
           <form onSubmit={handleEmailSignIn}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
-                <button
+                <Button
+                  variant="outline"
                   type="button"
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground w-full h-9 px-4 py-2"
+                  className="w-full"
                   onClick={() => handleOAuthSignIn("google")}
                   disabled={isLoading}
                 >
@@ -113,11 +115,12 @@ export function LoginForm({ className, ...props }) {
                     />
                   </svg>
                   Continue with Google
-                </button>
+                </Button>
 
-                <button
+                <Button
+                  variant="outline"
                   type="button"
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground w-full h-9 px-4 py-2"
+                  className="w-full"
                   onClick={() => handleOAuthSignIn("github")}
                   disabled={isLoading}
                 >
@@ -132,11 +135,11 @@ export function LoginForm({ className, ...props }) {
                     />
                   </svg>
                   Continue with GitHub
-                </button>
+                </Button>
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
@@ -163,7 +166,7 @@ export function LoginForm({ className, ...props }) {
                     <Label htmlFor="password">Password</Label>
                     <Link
                       href="/forgot-password"
-                      className="ml-auto inline-block text-sm underline"
+                      className="ml-auto inline-block text-sm underline text-muted-foreground hover:text-primary"
                     >
                       Forgot your password?
                     </Link>
@@ -181,9 +184,9 @@ export function LoginForm({ className, ...props }) {
                 </Button>
               </div>
             </div>
-            <div className="mt-4 text-center text-sm">
+            <div className="mt-4 text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <Link href="/signup" className="underline">
+              <Link href="/signup" className="underline text-primary hover:text-primary/80">
                 Sign up
               </Link>
             </div>
@@ -196,11 +199,11 @@ export function LoginForm({ className, ...props }) {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen w-full lg:grid lg:grid-cols-2">
+    <div className="flex min-h-screen w-full lg:grid lg:grid-cols-2 bg-background">
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">VidyaVerse</h1>
+            <h1 className="text-3xl font-bold text-foreground">VidyaVerse</h1>
             <p className="text-balance text-muted-foreground">
               Welcome back to your learning journey
             </p>
@@ -208,13 +211,17 @@ export default function LoginPage() {
           <LoginForm />
         </div>
       </div>
-      <div className="hidden bg-muted lg:block">
-        <div className="flex h-full items-center justify-center p-6">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+      <div className="hidden bg-muted lg:block relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-600/20"></div>
+        <div className="flex h-full items-center justify-center p-6 relative z-10">
+          <div className="text-center max-w-lg">
+            <div className="w-20 h-20 bg-background rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl">
+              <BookOpen className="h-10 w-10 text-primary" />
+            </div>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-foreground mb-6">
               Learn Without Limits
             </h2>
-            <p className="mx-auto max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400 mt-4">
+            <p className="mx-auto text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
               Access thousands of courses, quizzes, and learning materials
               designed to help you achieve your goals.
             </p>

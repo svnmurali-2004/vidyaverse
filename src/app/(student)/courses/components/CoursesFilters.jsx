@@ -10,14 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, Filter, SlidersHorizontal, Check } from "lucide-react";
+import { Search, X, Filter, SlidersHorizontal, Check, ArrowUpDown } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const categories = [
   "all",
   "Programming",
   "Web Development",
-  "Mobile Development", 
+  "Mobile Development",
   "Data Science",
   "Machine Learning",
   "AI",
@@ -73,7 +73,7 @@ export default function CoursesFilters({
     } else {
       document.body.style.overflow = 'unset';
     }
-    
+
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -84,41 +84,42 @@ export default function CoursesFilters({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Search Bar - Always Visible */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
-          type="text"
-          placeholder="Search courses, skills, or topics..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 pr-10 h-12 text-base"
-        />
-        {searchTerm && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
-            onClick={() => onSearchChange("")}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+      <div className="relative max-w-2xl mx-auto">
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+          <Input
+            type="text"
+            placeholder="Search for courses, skills, or topics..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-12 pr-12 h-14 text-base rounded-full border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md focus:shadow-lg focus:border-blue-500 transition-all duration-300 bg-white dark:bg-slate-900"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"
+              onClick={() => onSearchChange("")}
+            >
+              <X className="h-4 w-4 text-slate-500" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Mobile Filter Toggle */}
       <div className="flex items-center justify-between lg:hidden">
         <Button
           variant="outline"
-          size="sm"
           onClick={() => setShowMobileFilters(true)}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 rounded-full border-slate-300"
         >
           <SlidersHorizontal className="h-4 w-4" />
           Filters
           {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+            <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs bg-blue-600 text-white rounded-full">
               {activeFiltersCount}
             </Badge>
           )}
@@ -140,39 +141,39 @@ export default function CoursesFilters({
       {showMobileFilters && (
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={closeMobileFilters}
           />
-          
+
           {/* Modal */}
-          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-xl shadow-xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
+          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-2xl shadow-2xl max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom duration-300 flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold flex items-center gap-2">
                 <SlidersHorizontal className="h-5 w-5" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  <Badge className="h-5 w-5 p-0 flex items-center justify-center text-xs bg-blue-600 text-white rounded-full">
                     {activeFiltersCount}
                   </Badge>
                 )}
               </h3>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={closeMobileFilters}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </Button>
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-6 overflow-y-auto max-h-[calc(80vh-80px)]">
+            <div className="p-6 space-y-8 overflow-y-auto flex-1">
               {/* Category Filter */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
                   Category
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -182,12 +183,15 @@ export default function CoursesFilters({
                       variant={categoryFilter === category ? "default" : "outline"}
                       size="sm"
                       onClick={() => onCategoryChange(category)}
-                      className="justify-start text-left h-10"
+                      className={`justify-start text-left h-auto py-2 px-3 ${categoryFilter === category
+                          ? "bg-blue-600 hover:bg-blue-700 text-white border-transparent"
+                          : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        }`}
                     >
                       {categoryFilter === category && (
-                        <Check className="h-3 w-3 mr-1" />
+                        <Check className="h-3 w-3 mr-2 flex-shrink-0" />
                       )}
-                      {category === "all" ? "All Categories" : category}
+                      <span className="truncate">{category === "all" ? "All Categories" : category}</span>
                     </Button>
                   ))}
                 </div>
@@ -195,7 +199,7 @@ export default function CoursesFilters({
 
               {/* Level Filter */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
                   Level
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -205,10 +209,13 @@ export default function CoursesFilters({
                       variant={levelFilter === level ? "default" : "outline"}
                       size="sm"
                       onClick={() => onLevelChange(level)}
-                      className="justify-start text-left h-10 capitalize"
+                      className={`justify-start text-left h-auto py-2 px-3 capitalize ${levelFilter === level
+                          ? "bg-blue-600 hover:bg-blue-700 text-white border-transparent"
+                          : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        }`}
                     >
                       {levelFilter === level && (
-                        <Check className="h-3 w-3 mr-1" />
+                        <Check className="h-3 w-3 mr-2 flex-shrink-0" />
                       )}
                       {level === "all" ? "All Levels" : level}
                     </Button>
@@ -218,7 +225,7 @@ export default function CoursesFilters({
 
               {/* Price Filter */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
                   Price
                 </label>
                 <div className="space-y-2">
@@ -232,7 +239,10 @@ export default function CoursesFilters({
                       variant={priceFilter === option.value ? "default" : "outline"}
                       size="sm"
                       onClick={() => onPriceFilterChange(option.value)}
-                      className="w-full justify-start text-left h-10"
+                      className={`w-full justify-start text-left h-10 ${priceFilter === option.value
+                          ? "bg-blue-600 hover:bg-blue-700 text-white border-transparent"
+                          : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        }`}
                     >
                       {priceFilter === option.value && (
                         <Check className="h-3 w-3 mr-2" />
@@ -245,7 +255,7 @@ export default function CoursesFilters({
 
               {/* Sort Options */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
                   Sort By
                 </label>
                 <div className="space-y-2">
@@ -255,7 +265,10 @@ export default function CoursesFilters({
                       variant={sortBy === option.value ? "default" : "outline"}
                       size="sm"
                       onClick={() => onSortChange(option.value)}
-                      className="w-full justify-start text-left h-10"
+                      className={`w-full justify-start text-left h-10 ${sortBy === option.value
+                          ? "bg-blue-600 hover:bg-blue-700 text-white border-transparent"
+                          : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        }`}
                     >
                       {sortBy === option.value && (
                         <Check className="h-3 w-3 mr-2" />
@@ -268,7 +281,7 @@ export default function CoursesFilters({
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 bg-slate-50 dark:bg-slate-900/50">
               {hasActiveFilters && (
                 <Button
                   variant="outline"
@@ -283,9 +296,9 @@ export default function CoursesFilters({
               )}
               <Button
                 onClick={closeMobileFilters}
-                className="flex-1 bg-primary hover:bg-primary/90"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20"
               >
-                Apply Filters
+                Show Results
               </Button>
             </div>
           </div>
@@ -295,11 +308,11 @@ export default function CoursesFilters({
       {/* Desktop Filters - Always Visible on Large Screens */}
       <div className="hidden lg:block space-y-4">
         {/* Filter Controls */}
-        <div className="flex flex-row gap-4 items-center">
+        <div className="flex flex-row gap-4 items-center justify-center">
           {/* Category Filter */}
-          <div className="flex-1 max-w-xs">
+          <div className="w-48">
             <Select value={categoryFilter} onValueChange={onCategoryChange}>
-              <SelectTrigger className="h-10">
+              <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm hover:border-blue-400 transition-colors">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -313,9 +326,9 @@ export default function CoursesFilters({
           </div>
 
           {/* Level Filter */}
-          <div className="flex-1 max-w-xs">
+          <div className="w-40">
             <Select value={levelFilter} onValueChange={onLevelChange}>
-              <SelectTrigger className="h-10">
+              <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm hover:border-blue-400 transition-colors">
                 <SelectValue placeholder="Level" />
               </SelectTrigger>
               <SelectContent>
@@ -329,9 +342,9 @@ export default function CoursesFilters({
           </div>
 
           {/* Price Filter */}
-          <div className="flex-1 max-w-xs">
+          <div className="w-40">
             <Select value={priceFilter} onValueChange={onPriceFilterChange}>
-              <SelectTrigger className="h-10">
+              <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm hover:border-blue-400 transition-colors">
                 <SelectValue placeholder="Price" />
               </SelectTrigger>
               <SelectContent>
@@ -343,10 +356,13 @@ export default function CoursesFilters({
           </div>
 
           {/* Sort Filter */}
-          <div className="flex-1 max-w-xs">
+          <div className="w-48">
             <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="h-10">
-                <SelectValue placeholder="Sort by" />
+              <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm hover:border-blue-400 transition-colors">
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4 text-slate-400" />
+                  <SelectValue placeholder="Sort by" />
+                </div>
               </SelectTrigger>
               <SelectContent>
                 {sortOptions.map((option) => (
@@ -362,11 +378,10 @@ export default function CoursesFilters({
           {hasActiveFilters && (
             <Button
               variant="ghost"
-              size="sm"
               onClick={onClearFilters}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl px-4 h-11"
             >
-              <X className="h-4 w-4 mr-1" />
+              <X className="h-4 w-4 mr-2" />
               Clear
             </Button>
           )}
@@ -374,15 +389,13 @@ export default function CoursesFilters({
 
         {/* Active Filters Display */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-            <span className="text-sm text-muted-foreground py-1">Active filters:</span>
-            
+          <div className="flex flex-wrap justify-center gap-2 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
             {searchTerm && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="pl-3 pr-1 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-2">
                 Search: "{searchTerm}"
                 <button
                   onClick={() => onSearchChange("")}
-                  className="ml-1 hover:text-red-500"
+                  className="p-0.5 hover:bg-blue-200 rounded-full transition-colors"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -390,11 +403,11 @@ export default function CoursesFilters({
             )}
 
             {categoryFilter !== "all" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="pl-3 pr-1 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-2">
                 Category: {categoryFilter}
                 <button
                   onClick={() => onCategoryChange("all")}
-                  className="ml-1 hover:text-red-500"
+                  className="p-0.5 hover:bg-indigo-200 rounded-full transition-colors"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -402,11 +415,11 @@ export default function CoursesFilters({
             )}
 
             {levelFilter !== "all" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="pl-3 pr-1 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-2">
                 Level: {levelFilter.charAt(0).toUpperCase() + levelFilter.slice(1)}
                 <button
                   onClick={() => onLevelChange("all")}
-                  className="ml-1 hover:text-red-500"
+                  className="p-0.5 hover:bg-purple-200 rounded-full transition-colors"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -414,11 +427,11 @@ export default function CoursesFilters({
             )}
 
             {priceFilter !== "all" && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="pl-3 pr-1 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-100 flex items-center gap-2">
                 {priceFilter === "free" ? "Free courses" : "Paid courses"}
                 <button
                   onClick={() => onPriceFilterChange("all")}
-                  className="ml-1 hover:text-red-500"
+                  className="p-0.5 hover:bg-green-200 rounded-full transition-colors"
                 >
                   <X className="h-3 w-3" />
                 </button>
